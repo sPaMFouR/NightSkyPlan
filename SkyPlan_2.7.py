@@ -11,6 +11,7 @@ import math
 import ephem
 import easygui
 import numpy as np
+import pandas as pd
 import astropy.units as u
 from astropy.time import Time
 import matplotlib.colors as mcolors
@@ -19,21 +20,27 @@ from astropy.coordinates import Angle
 from datetime import datetime, timedelta
 from matplotlib.ticker import FixedLocator
 from matplotlib.dates import DateFormatter, MinuteLocator, HourLocator
+from pandas.plotting import register_matplotlib_converters
 
+register_matplotlib_converters()
 plt.rc('font', family='sans serif')
 # ------------------------------------------------------------------------------------------------------------------- #
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
 # Observatory & Telescope Details
+# Target List
 # ------------------------------------------------------------------------------------------------------------------- #
-OBS_NAME = 'Indian Astronomical Observatory, Hanle'
-OBS_LONG = '78:57:51'
-OBS_LAT = '32:46:46'
-OBS_ALT = 4486
-OBS_TIMEZONE = +5.5
+choice_telescope = 'HCT'
+telescope_df = pd.read_csv('TelescopeList.dat', sep='\s+', comment='#').set_index('ShortName')
+(OBS_NAME, OBS_LONG, OBS_LAT, OBS_ALT, OBS_TIMEZONE) = telescope_df.loc[choice_telescope].values
 telescope_horizon = 25
 telescope_zenith = 85
+
+target_df = pd.read_csv('TargetList.dat', sep='\s+', comment='#').set_index('Index')
+field_names = ['Object {0}'.format(idx) for idx in target_df.index.values]
+field_values = [target_df.loc[idx, 'Name'] + ' ' + target_df.loc[idx, 'RA'] + ' ' + target_df.loc[idx, 'DEC'] for idx 
+                in target_df.index.values]
 # ------------------------------------------------------------------------------------------------------------------- #
 
 
@@ -54,13 +61,6 @@ markers = ['o', '^', 'v', 'd', 'P', 'X', 'p', 'h', 'D', '4', '+', 's']
 # -------------------------------------------------------------------------------------------------------------------
 box_msg = 'Enter Name, RA, DEC of objects to be plotted'
 box_title = 'Details of Objects'
-field_names = ['Object 1', 'Object 2', 'Object 3', 'Object 4', 'Object 5', 'Object 6', 'Object 7',
-               'Object 8', 'Object 9']
-field_values = ['2020hvf 11:21:26.45 +03:00:52.85', '2020jfo 12:21:50.48 04:28:54.12',
-                '2020fqv 12:36:33.26 +11:13:53.96', '2019vxm 19:58:28.54 +62:08:15.83',
-                '2019tua 21:58:00.28 +24:15:57.1', '2020akf 09:28:39.66 +38:33:47.2',
-                '2018hna 12:26:12.05 +58:18:51.10', '2019nj 9:26:12.05 +78:18:51.10', '2017jk 5:26:12.05 +08:25:51.10']
-
 list_values = easygui.multenterbox(msg=box_msg, title=box_title, fields=field_names, values=field_values)
 
 while True:
@@ -209,11 +209,12 @@ class ObjectToObs:
 
     def plot_in_utc(self):
         global object_count
-        self.ax.plot(list(utctime_intervals.value), self.list_alt, label=self.name, c=colors[object_count],
-                     marker=markers[object_count], ls='-', lw=1, ms=7, alpha=0.7)
+        plot_intervals = [time for time in moonsep_intervals if int(self.get_altitude(str(time))) > 0]
+        self.ax.plot(list(utctime_intervals.value), self.list_alt, c=colors[object_count], marker=markers[object_count],
+                     ls='-', lw=1, ms=7, alpha=0.7, label='{0} [{1:}]'.format(self.name,
+                     self.get_moonsep(str(plot_intervals[0]))))
         self.ax.plot(list(utctime_intervals.value), self.list_alt, label='_nolegend_', c='k',
                      marker=markers[object_count], mfc='None', mew=0.5, ls='', ms=7, alpha=0.7)
-        plot_intervals = [time for time in moonsep_intervals if int(self.get_altitude(str(time))) > 0]
 
         for time_obs in plot_intervals:
             self.ax.text(time_obs.value, self.get_altitude(str(time_obs)) + 0.5, self.get_moonsep(str(time_obs)),
@@ -222,11 +223,12 @@ class ObjectToObs:
 
     def plot_in_local(self):
         global object_count
-        self.ax.plot(list(localtime_intervals.value), self.list_alt, label=self.name, color=colors[object_count],
-                     marker=markers[object_count], ls='-', lw=1, ms=7, alpha=0.7)
+        plot_intervals = [time for time in moonsep_intervals if int(self.get_altitude(str(time))) > 0]
+        self.ax.plot(list(localtime_intervals.value), self.list_alt, color=colors[object_count], ls='-', lw=1, ms=7,
+                     marker=markers[object_count], alpha=0.7, label='{0} [{1:}]'.format(self.name,
+                     self.get_moonsep(str(plot_intervals[0]))))
         self.ax.plot(list(localtime_intervals.value), self.list_alt, label='_nolegend_', c='k',
                      marker=markers[object_count], mfc='None', mew=0.5, ls='', ms=7, alpha=0.7)
-        plot_intervals = [time for time in moonsep_intervals if int(self.get_altitude(str(time))) > 0]
 
         for time_obs in plot_intervals:
             local_time = time_obs + OBS_TIMEZONE * u.hour
@@ -325,8 +327,8 @@ def plot_obsplan(ax_obj, utc=True):
 
     # Print Text In The Plot
     # ------------------------------------------------------------------------------------------------------------- #
-    ax_obj.text(sunset.value, 96, 'Sunset', rotation=+50, color='orangered', fontsize=10)
-    ax_obj.text(sunrise.value - timedelta(minutes=10), 96, 'Sunrise', rotation=+50, color='orangered', fontsize=10)
+    ax_obj.text(sunset.value, 93, 'Sunset', rotation=+50, color='orangered', fontsize=10)
+    ax_obj.text(sunrise.value - timedelta(minutes=10), 93, 'Sunrise', rotation=+50, color='orangered', fontsize=10)
     ax_obj.text(duskcivil.value, 13, 'Civil Twilight', rotation=-90, color='navy', alpha=1, fontsize=10)
     ax_obj.text(dawncivil.value, 13, 'Civil Twilight', rotation=-90, color='navy', alpha=1, fontsize=10)
     ax_obj.text(dusknauti.value, 17, 'Nautical Twilight', rotation=-90, color='navy', alpha=1, fontsize=10)
@@ -411,7 +413,7 @@ def plot_obsplan(ax_obj, utc=True):
 
     ax_obj.autoscale_view()
     fig.autofmt_xdate()
-    fig.savefig('ObsPlan.pdf', format='pdf', dpi=2000, bbox_inches='tight')
+    fig.savefig('SkyPlan_{0}.pdf'.format(date_obs), format='pdf', dpi=2000, bbox_inches='tight')
     plt.show()
     plt.close(fig)
 
@@ -421,7 +423,7 @@ def plot_obsplan(ax_obj, utc=True):
 # ------------------------------------------------------------------------------------------------------------------- #
 # Plots The Trajectories Of Objects To Be Observed
 # ------------------------------------------------------------------------------------------------------------------- #
-fig = plt.figure(figsize=(18, 15))
+fig = plt.figure(figsize=(18, 13))
 ax = fig.add_subplot(111)
 
 for index, value in enumerate(list_values):

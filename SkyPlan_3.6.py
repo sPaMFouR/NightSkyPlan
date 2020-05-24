@@ -7,7 +7,6 @@
 # ------------------------------------------------------------------------------------------------------------------- #
 # Import Required Libraries
 # ------------------------------------------------------------------------------------------------------------------- #
-import math
 import ephem
 import easygui
 import numpy as np
@@ -21,6 +20,8 @@ from datetime import datetime, timedelta
 from matplotlib.ticker import FixedLocator
 from matplotlib.dates import DateFormatter, MinuteLocator, HourLocator
 
+from pandas.plotting import register_matplotlib_converters
+register_matplotlib_converters()
 plt.rc('font', family='sans serif')
 # ------------------------------------------------------------------------------------------------------------------- #
 
@@ -207,29 +208,31 @@ class ObjectToObs:
 
     def plot_in_utc(self):
         global object_count
-        self.ax.plot(list(utctime_intervals.value), self.list_alt, label=self.name, c=colors[object_count],
-                     marker=markers[object_count], ls='-', lw=1, ms=7, alpha=0.7)
+        plot_intervals = [time for time in moonsep_intervals if int(self.get_altitude(str(time))) > 0]
+        self.ax.plot(list(utctime_intervals.value), self.list_alt, c=colors[object_count], marker=markers[object_count],
+                     ls='-', lw=1, ms=7, alpha=0.7, label='{0} [{1:}]'.format(self.name,
+                     self.get_moonsep(str(plot_intervals[0]))))
         self.ax.plot(list(utctime_intervals.value), self.list_alt, label='_nolegend_', c='k',
                      marker=markers[object_count], mfc='None', mew=0.5, ls='', ms=7, alpha=0.7)
-        plot_intervals = [time for time in moonsep_intervals if int(self.get_altitude(str(time))) > 0]
 
-        for time_obs in plot_intervals:
-            self.ax.text(time_obs.value, self.get_altitude(str(time_obs)) + 0.5, self.get_moonsep(str(time_obs)),
-                         fontsize=9, color='white', alpha=0.8)
+        # for time_obs in plot_intervals:
+        #     self.ax.text(time_obs.value, self.get_altitude(str(time_obs)) + 0.5, self.get_moonsep(str(time_obs)),
+        #                  fontsize=9, color='white', alpha=0.8)
         object_count += 1
 
     def plot_in_local(self):
         global object_count
-        self.ax.plot(list(localtime_intervals.value), self.list_alt, label=self.name, color=colors[object_count],
-                     marker=markers[object_count], ls='-', lw=1, ms=7, alpha=0.7)
+        plot_intervals = [time for time in moonsep_intervals if int(self.get_altitude(str(time))) > 0]
+        self.ax.plot(list(localtime_intervals.value), self.list_alt, color=colors[object_count], ls='-', lw=1, ms=7,
+                     marker=markers[object_count], alpha=0.7, label='{0} [{1:}]'.format(self.name,
+                     self.get_moonsep(str(plot_intervals[0]))))
         self.ax.plot(list(localtime_intervals.value), self.list_alt, label='_nolegend_', c='k',
                      marker=markers[object_count], mfc='None', mew=0.5, ls='', ms=7, alpha=0.7)
-        plot_intervals = [time for time in moonsep_intervals if int(self.get_altitude(str(time))) > 0]
 
-        for time_obs in plot_intervals:
-            local_time = time_obs + OBS_TIMEZONE * u.hour
-            self.ax.text(local_time.value, self.get_altitude(str(time_obs)) + 0.5, self.get_moonsep(str(time_obs)),
-                         fontsize=9, color='white', alpha=0.8)
+        # for time_obs in plot_intervals:
+        #     local_time = time_obs + OBS_TIMEZONE * u.hour
+        #     self.ax.text(local_time.value, self.get_altitude(str(time_obs)) + 0.5, self.get_moonsep(str(time_obs)),
+        #                  fontsize=9, color='white', alpha=0.8)
         object_count += 1
 
 # ------------------------------------------------------------------------------------------------------------------- #
@@ -310,7 +313,7 @@ def plot_obsplan(ax_obj, utc=True):
     ax_obj.grid(True, ls='--', lw=1)
     ax_obj.set_ylim(0, 90)
     ax_obj.set_xlim(sunset.value, sunrise.value)
-    ax_obj.legend(title='Target List', loc='center left', bbox_to_anchor=(1.05, 0.5), markerscale=1.6,
+    ax_obj.legend(title='Target List [Moon Angle]', loc='center left', bbox_to_anchor=(1.05, 0.5), markerscale=1.6,
                   ncol=1, frameon=True, shadow=True, fancybox=True, fontsize=14)
     ax_obj.set_title(display_text, fontsize=16)
     ax_obj.set_ylabel('Elevation [In Degrees]', fontsize=16)
@@ -323,14 +326,14 @@ def plot_obsplan(ax_obj, utc=True):
 
     # Print Text In The Plot
     # ------------------------------------------------------------------------------------------------------------- #
-    ax_obj.text(sunset.value, 96, 'Sunset', rotation=+50, color='orangered', fontsize=10)
-    ax_obj.text(sunrise.value - timedelta(minutes=10), 96, 'Sunrise', rotation=+50, color='orangered', fontsize=10)
-    ax_obj.text(duskcivil.value, 13, 'Civil Twilight', rotation=-90, color='navy', alpha=1, fontsize=10)
-    ax_obj.text(dawncivil.value, 13, 'Civil Twilight', rotation=-90, color='navy', alpha=1, fontsize=10)
-    ax_obj.text(dusknauti.value, 17, 'Nautical Twilight', rotation=-90, color='navy', alpha=1, fontsize=10)
-    ax_obj.text(dawnnauti.value, 17, 'Nautical Twilight', rotation=-90, color='navy', alpha=1, fontsize=10)
-    ax_obj.text(duskastro.value, 21, 'Astronomical Twilight', rotation=-90, color='navy', alpha=1, fontsize=10)
-    ax_obj.text(dawnastro.value, 21, 'Astronomical Twilight', rotation=-90, color='navy', alpha=1, fontsize=10)
+    ax_obj.text(sunset.value, 93, 'Sunset', rotation=+50, color='orangered', fontsize=10)
+    ax_obj.text(sunrise.value - timedelta(minutes=10), 93, 'Sunrise', rotation=+50, color='orangered', fontsize=10)
+    ax_obj.text(duskcivil.value, 7, 'Civil Twilight', rotation=-90, color='navy', alpha=1, fontsize=10)
+    ax_obj.text(dawncivil.value, 7, 'Civil Twilight', rotation=-90, color='navy', alpha=1, fontsize=10)
+    ax_obj.text(dusknauti.value, 5, 'Nautical Twilight', rotation=-90, color='navy', alpha=1, fontsize=10)
+    ax_obj.text(dawnnauti.value, 5, 'Nautical Twilight', rotation=-90, color='navy', alpha=1, fontsize=10)
+    ax_obj.text(duskastro.value, 3, 'Astronomical Twilight', rotation=-90, color='navy', alpha=1, fontsize=10)
+    ax_obj.text(dawnastro.value, 3, 'Astronomical Twilight', rotation=-90, color='navy', alpha=1, fontsize=10)
 
     night_span = sunrise.value - sunset.value
     ax_obj.text(sunset.value + night_span / 2 - timedelta(minutes=25), telescope_horizon - 3, 
@@ -392,8 +395,8 @@ def plot_obsplan(ax_obj, utc=True):
     # ------------------------------------------------------------------------------------------------------------- #
     list_secz = []
     for altitude in ax_obj.get_yticks():
-        if (1 / math.cos(math.radians(90 - altitude))) < 10:
-            list_secz.append('%5.2f' % (1 / math.cos(math.radians(90 - altitude))))
+        if (1 / np.cos(np.radians(90 - altitude))) < 10:
+            list_secz.append('%5.2f' % (1 / np.cos(np.radians(90 - altitude))))
         else:
             list_secz.append('NaN')
 
@@ -409,7 +412,7 @@ def plot_obsplan(ax_obj, utc=True):
 
     ax_obj.autoscale_view()
     fig.autofmt_xdate()
-    fig.savefig('ObsPlan.pdf', format='pdf', dpi=2000, bbox_inches='tight')
+    fig.savefig('SkyPlan_{0}.pdf'.format(date_obs), format='pdf', dpi=2000, bbox_inches='tight')
     plt.show()
     plt.close(fig)
 
@@ -419,7 +422,7 @@ def plot_obsplan(ax_obj, utc=True):
 # ------------------------------------------------------------------------------------------------------------------- #
 # Plots The Trajectories Of Objects To Be Observed
 # ------------------------------------------------------------------------------------------------------------------- #
-fig = plt.figure(figsize=(18, 15))
+fig = plt.figure(figsize=(18, 13))
 ax = fig.add_subplot(111)
 
 for index, value in enumerate(list_values):
