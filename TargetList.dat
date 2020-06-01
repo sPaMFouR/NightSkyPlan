@@ -1,9 +1,10 @@
-# List of Objects to be Observed
-Index      Name     RA             DEC         Comments
-  0      2020hvf  11:21:26.45  +03:00:52.85       Ia
-  1      2020fqv  12:36:33.26  +11:13:53.96       II
-  2      2020jfo  12:21:50.48  +04:28:54.12       II
-  3      2019vxm  19:58:28.54  +62:08:15.83       IIn
-  4      2019tua  21:58:00.28  +24:15:57.10       Ib
-  5      2020akf  09:28:39.66  +38:33:47.20       Ia
-  6      2018hna  12:26:12.05  +58:18:51.10       1987A-like
+# List of Objects to be Observed.
+# Comment 'Y' (else 'N') in the column 'ToPlot' if you want the object to be plotted 
+Index      Name     RA             DEC         Comments          ToPlot
+  0      2020hvf  11:21:26.45  +03:00:52.85       Ia               Y
+  1      2020fqv  12:36:33.26  +11:13:53.96       II               Y  
+  2      2020jfo  12:21:50.48  +04:28:54.12       II               Y
+  3      2019vxm  19:58:28.54  +62:08:15.83       IIn              Y
+  4      2019tua  21:58:00.28  +24:15:57.10       Ib               Y
+  5      2020akf  09:28:39.66  +38:33:47.20       Ia               Y 
+  6      2018hna  12:26:12.05  +58:18:51.10       1987A-like       N

@@ -37,6 +37,7 @@ telescope_horizon = 25
 telescope_zenith = 85
 
 target_df = pd.read_csv('TargetList.dat', sep='\s+', comment='#').set_index('Index')
+target_df = target_df[target_df['ToPlot'].isin(['y', 'Y'])]
 field_names = ['Object {0}'.format(idx) for idx in target_df.index.values]
 field_values = [target_df.loc[idx, 'Name'] + ' ' + target_df.loc[idx, 'RA'] + ' ' + target_df.loc[idx, 'DEC'] for idx 
                 in target_df.index.values]
