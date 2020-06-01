@@ -40,7 +40,7 @@ telescope_zenith = 85
 target_df = pd.read_csv('TargetList.dat', sep='\s+', comment='#').set_index('Index')
 target_df = target_df[target_df['ToPlot'].isin(['y', 'Y'])]
 field_names = ['Object {0}'.format(idx) for idx in target_df.index.values]
-field_values = [target_df.loc[idx, 'Name'] + ' ' + target_df.loc[idx, 'RA'] + ' ' + target_df.loc[idx, 'DEC'] for idx 
+field_values = [target_df.loc[idx, 'Name'] + ' ' + target_df.loc[idx, 'RA'] + ' ' + target_df.loc[idx, 'DEC'] for idx
                 in target_df.index.values]
 # ------------------------------------------------------------------------------------------------------------------- #
 
@@ -211,8 +211,8 @@ class ObjectToObs:
     def plot_in_utc(self):
         global object_count
         plot_intervals = [time for time in moonsep_intervals if int(self.get_altitude(str(time))) > 0]
-        self.ax.plot(list(utctime_intervals.value), self.list_alt, c=colors[object_count], marker=markers[object_count],
-                     ls='-', lw=1, ms=7, alpha=0.7, label='{0} [{1:}]'.format(self.name,
+        self.ax.plot(list(utctime_intervals.value), self.list_alt, c=colors[object_count],
+                     marker=markers[object_count], ls='-', lw=1, ms=7, alpha=0.7, label='{0} [{1:}]'.format(self.name,
                      self.get_moonsep(str(plot_intervals[0]))))
         self.ax.plot(list(utctime_intervals.value), self.list_alt, label='_nolegend_', c='k',
                      marker=markers[object_count], mfc='None', mew=0.5, ls='', ms=7, alpha=0.7)
@@ -254,6 +254,7 @@ def plot_obsplan(ax_obj, utc=True):
         None
     """
     global sunset, sunrise, duskcivil, dawncivil, dusknauti, dawnnauti, duskastro, dawnastro
+
     def sign(value):
         return (float(value) > 0) - (float(value) < 0)
 
@@ -299,7 +300,7 @@ def plot_obsplan(ax_obj, utc=True):
 
     # Set Plot Ticks
     # ------------------------------------------------------------------------------------------------------------- #
-    
+
     ax_obj.xaxis.set_ticks_position('both')
     ax_obj.xaxis.set_major_locator(HourLocator())
     ax_obj.yaxis.set_major_locator(FixedLocator(range(0, 91, 10)))
@@ -338,13 +339,13 @@ def plot_obsplan(ax_obj, utc=True):
     ax_obj.text(dawnastro.value, 21, 'Astronomical Twilight', rotation=-90, color='navy', alpha=1, fontsize=10)
 
     night_span = sunrise.value - sunset.value
-    ax_obj.text(sunset.value + night_span / 2 - timedelta(minutes=25), telescope_horizon - 3, 
+    ax_obj.text(sunset.value + night_span / 2 - timedelta(minutes=25), telescope_horizon - 3,
                 'Telescope Horizon', color='navy', fontsize=10)
-    ax_obj.text(sunset.value + night_span / 2 - timedelta(minutes=25), telescope_zenith + 1, 
+    ax_obj.text(sunset.value + night_span / 2 - timedelta(minutes=25), telescope_zenith + 1,
                 'Telescope Zenith', color='navy', fontsize=10)
 
     percent_illumination = 'Moon Illumination = {0:.1f}%'.format(ephem.Moon(time_midnight).phase)
-    ax_obj.text(x=sunset.value + night_span / 2 - timedelta(minutes=35), y=91, s=percent_illumination, 
+    ax_obj.text(x=sunset.value + night_span / 2 - timedelta(minutes=35), y=91, s=percent_illumination,
                 color='r', fontsize=12)
 
     if sunset.value < time_current.utc.datetime < sunrise.value:
@@ -369,28 +370,28 @@ def plot_obsplan(ax_obj, utc=True):
     ax_obj.fill_between(ax_obj.get_xbound(), telescope_horizon + 0.5, telescope_zenith - 0.5, facecolor='k')
 
     ax_obj.fill_between([sunset.value, duskcivil.value], telescope_horizon + 0.5,
-                       telescope_zenith - 0.5, facecolor='royalblue', alpha=1)
+                        telescope_zenith - 0.5, facecolor='royalblue', alpha=1)
     ax_obj.fill_between([dawncivil.value, sunrise.value], telescope_horizon + 0.5,
-                       telescope_zenith - 0.5, facecolor='royalblue', alpha=1)
+                        telescope_zenith - 0.5, facecolor='royalblue', alpha=1)
     ax_obj.fill_between([duskcivil.value, dusknauti.value], telescope_horizon + 0.5,
-                       telescope_zenith - 0.5, facecolor='royalblue', alpha=0.7)
+                        telescope_zenith - 0.5, facecolor='royalblue', alpha=0.7)
     ax_obj.fill_between([dawnnauti.value, dawncivil.value], telescope_horizon + 0.5,
-                       telescope_zenith - 0.5, facecolor='royalblue', alpha=0.7)
+                        telescope_zenith - 0.5, facecolor='royalblue', alpha=0.7)
     ax_obj.fill_between([dusknauti.value, duskastro.value], telescope_horizon + 0.5,
-                       telescope_zenith - 0.5, facecolor='royalblue', alpha=0.4)
+                        telescope_zenith - 0.5, facecolor='royalblue', alpha=0.4)
     ax_obj.fill_between([dawnastro.value, dawnnauti.value], telescope_horizon + 0.5,
-                       telescope_zenith - 0.5, facecolor='royalblue', alpha=0.4)
+                        telescope_zenith - 0.5, facecolor='royalblue', alpha=0.4)
 
     # colarray = np.empty((1, 100, 4), dtype=float)
     # rgb = mcolors.colorConverter.to_rgb('royalblue')
     # colarray[:,:,:3] = rgb
     # colarray[:,:,-1] = np.reshape(np.linspace(0, 1, 100)[:, None], (1, 100))
 
-    # ax_obj.imshow(colarray, aspect='auto', extent=[mdate_sunset, mdate_duskcivil, 
+    # ax_obj.imshow(colarray, aspect='auto', extent=[mdate_sunset, mdate_duskcivil,
     #              telescope_horizon + 0.5, telescope_zenith - 0.5,], origin='lower', zorder=1)
-    # ax_obj.imshow(colarray, aspect='auto', extent=[mdate_dawncivil, mdate_sunrise, 
+    # ax_obj.imshow(colarray, aspect='auto', extent=[mdate_dawncivil, mdate_sunrise,
     #              telescope_horizon + 0.5, telescope_zenith - 0.5,], origin='lower', zorder=1)
-  
+
     # ------------------------------------------------------------------------------------------------------------- #
 
     # Plot The Y-Axis On The RHS With Airmass
