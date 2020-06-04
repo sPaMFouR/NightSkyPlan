@@ -8,12 +8,12 @@ NightSkyPlan is a python script written to aid planning of night sky observation
 
 The code is still under development.
 
-Authors
+<!Authors
 -------
 
 * **Avinash Singh** (IIA, Bengaluru)
 * **Brajesh Kumar** (IIA, Bengaluru)
-
+-->
 Requirements
 -------
 
