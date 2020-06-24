@@ -1,43 +1,45 @@
 #!/usr/bin/env python
 # xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx #
-# xxxxxxxxxxxxxxxxxxxxxxx-------------------------OBSERVATION PLANNING----------------------xxxxxxxxxxxxxxxxxxxxxxxxx #
+# xxxxxxxxxxxxxxxxxxxxxxx-------------------------NIGHT SKY PLANNER-------------------------xxxxxxxxxxxxxxxxxxxxxxxxx #
 # xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx #
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
 # Import Required Libraries
 # ------------------------------------------------------------------------------------------------------------------- #
-import math
 import ephem
-import easygui
 import numpy as np
 import pandas as pd
+import easygui as eg
 import astropy.units as u
 from astropy.time import Time
-import matplotlib.colors as mcolors
-from matplotlib import pyplot as plt
 from astropy.coordinates import Angle
 from datetime import datetime, timedelta
+
+from matplotlib import rc
+import matplotlib.colors as mcolors
+from matplotlib import pyplot as plt
 from matplotlib.ticker import FixedLocator
 from matplotlib.dates import DateFormatter, MinuteLocator, HourLocator
+
 from pandas.plotting import register_matplotlib_converters
-
 register_matplotlib_converters()
-plt.rc('font', family='sans serif')
+
+plt.style.use('bmh')
+plt.rc('font', family='sans-serif')
 # ------------------------------------------------------------------------------------------------------------------- #
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
-# Observatory & Telescope Details
+# Global Variables
 # Target List
 # ------------------------------------------------------------------------------------------------------------------- #
-choice_telescope = 'HCT'
-telescope_df = pd.read_csv('TelescopeList.dat', sep='\s+', comment='#').set_index('ShortName')
-(OBS_NAME, OBS_LONG, OBS_LAT, OBS_ALT, OBS_TIMEZONE) = telescope_df.loc[choice_telescope].values
+list_targets = 'TargetList.dat'
+list_telescopes = 'TelescopeList.dat'
 telescope_horizon = 25
 telescope_zenith = 85
 
-target_df = pd.read_csv('TargetList.dat', sep='\s+', comment='#').set_index('Index')
+target_df = pd.read_csv(list_targets, sep='\s+', comment='#').set_index('Index')
 target_df = target_df[target_df['ToPlot'].isin(['y', 'Y'])]
 field_names = ['Object {0}'.format(idx) for idx in target_df.index.values]
 field_values = [target_df.loc[idx, 'Name'] + ' ' + target_df.loc[idx, 'RA'] + ' ' + target_df.loc[idx, 'DEC'] for idx
@@ -51,38 +53,65 @@ field_values = [target_df.loc[idx, 'Name'] + ' ' + target_df.loc[idx, 'RA'] + ' 
 time_offset = 0
 object_count = 0
 
-date_obs = str(Time(Time.now(), format='iso', out_subfmt='date'))
-colors = ['r', 'sandybrown', 'gold', 'darkorange', 'salmon', 'hotpink', 'limegreen', 'teal', 'y', 'brown', 'c']
+colors = ['r', 'sandybrown', 'gold', 'darkorange', 'salmon', 'deeppink', 'limegreen', 'teal', 'y', 'brown', 'c']
 markers = ['o', '^', 'v', 'd', 'P', 'X', 'p', 'h', 'D', '4', '+', 's']
 # ------------------------------------------------------------------------------------------------------------------- #
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
-# Manual Setup - GUI Code
-# -------------------------------------------------------------------------------------------------------------------
-box_msg = 'Enter Name, RA, DEC of objects to be plotted'
-box_title = 'Details of Objects'
-list_values = easygui.multenterbox(msg=box_msg, title=box_title, fields=field_names, values=field_values)
+# Function For Removing Empty Entries
+# ------------------------------------------------------------------------------------------------------------------- #
 
-while True:
-    try:
-        list_values.remove('')
-    except ValueError:
-        break
+def remove_empty_values(list_values):
+    """
+    Args:
+        list_values : Python list from which empty entries are to be removed
+    Returns:
+        list_values : Python list with empty entries removed
+    """
+    while True:
+        try:
+            list_values.remove('')
+        except ValueError:
+            break
+    return list_values
+
+# ------------------------------------------------------------------------------------------------------------------- #
+
+
+# ------------------------------------------------------------------------------------------------------------------- #
+# Manual Setup - GUI Code
+# ------------------------------------------------------------------------------------------------------------------- #
+# Telescope Details
+choice_telescope = eg.enterbox(msg='Enter The Name of the Telescope!', title='Name of the Telescope', default='HCT')
+telescope_df = pd.read_csv(list_telescopes, sep='\s+', comment='#').set_index('ShortName')
+
+if choice_telescope in telescope_df.index.values:
+    (OBS_NAME, OBS_LONG, OBS_LAT, OBS_ALT, OBS_TIMEZONE) = telescope_df.loc[choice_telescope].values
+else:
+    print ("ERROR: Observatory Name '{0}' not found in the file '{1}'".format(choice_telescope, list_telescopes))
+
+# List of Targets
+box_msg = 'Verify Name, RA, DEC of objects for Observation planning'
+box_title = 'Details of Objects'
+list_values = eg.multenterbox(msg=box_msg, title=box_title, fields=field_names, values=field_values)
+list_values = remove_empty_values(list_values)
 
 while len(list_values) == 0:
-    err_msg = box_msg + '\n\n Error: Aleast 1 Object required for plotting!!'
-    list_values = easygui.multenterbox(msg=err_msg, title=box_title, fields=field_names, values=list_values)
+    err_msg = box_msg + '\n\n ERROR: Aleast 1 Object required for Observation Planning!'
+    list_values = eg.multenterbox(msg=err_msg, title=box_title, fields=field_names, values=list_values)
     remove_empty_values(list_values)
 
-choice_utc = easygui.boolbox(msg='Plot Trajectories w.r.t UTC or Local Time?', title='UTC Or Local Time?',
-                             choices=['UTC', 'Local Time'])
-setup_manual = easygui.boolbox(msg='Manually Enter Date?', title='Manual or Current Date?',
-                               choices=['Manual', 'Current'])
+# Plot wrt UTC or Local Time?
+choice_utc = eg.boolbox(msg='Plot Trajectories w.r.t UTC or Local Time?', title='UTC Or Local Time?',
+                        choices=['UTC', 'Local Time'])
+
+# Current Date or Manually Entered Date?
+date_obs = str(Time(Time.now(), format='iso', out_subfmt='date'))
+setup_manual = eg.boolbox(msg='Manually Enter Date?', title='Manual or Current Date?', choices=['Manual', 'Current'])
 
 if setup_manual:
-    date_obs = easygui.enterbox(msg='Enter The Date Of Observation!', title='Date Of Observation',
-                                default=date_obs)
+    date_obs = eg.enterbox(msg='Enter The Date Of Observation!', title='Date Of Observation', default=date_obs)
 
 # choice_utc = True
 # setup_manual = True
@@ -144,29 +173,9 @@ dawnastro = Time(datetime.strptime(str(dawn_astrotwil).split('.')[0], '%Y/%m/%d 
 # Determining Time Intervals
 # ------------------------------------------------------------------------------------------------------------------- #
 plot_duration = (sunrise.utc.datetime - sunset.utc.datetime).total_seconds() / 3600.
-utctime_intervals = sunset + np.linspace(time_offset, time_offset + plot_duration, 125) * u.hour
+utctime_intervals = sunset + np.linspace(time_offset, time_offset + plot_duration, 140) * u.hour
 localtime_intervals = utctime_intervals + OBS_TIMEZONE * u.hour
 moonsep_intervals = sunset + np.linspace(time_offset, time_offset + plot_duration, 7)[1:-1] * u.hour
-# ------------------------------------------------------------------------------------------------------------------- #
-
-
-# ------------------------------------------------------------------------------------------------------------------- #
-# Functions For Error Handling
-# ------------------------------------------------------------------------------------------------------------------- #
-
-def remove_empty_values(python_list):
-    """
-    Args:
-        python_list : Python list from which empty values are to be removed
-    Returns:
-        None
-    """
-    while True:
-        try:
-            python_list.remove('')
-        except ValueError:
-            break
-
 # ------------------------------------------------------------------------------------------------------------------- #
 
 
@@ -212,41 +221,37 @@ class ObjectToObs:
         global object_count
         plot_intervals = [time for time in moonsep_intervals if int(self.get_altitude(str(time))) > 0]
         self.ax.plot(list(utctime_intervals.value), self.list_alt, c=colors[object_count],
-                     marker=markers[object_count], ls='-', lw=1, ms=7, alpha=0.7, label='{0} [{1:}]'.format(self.name,
-                     self.get_moonsep(str(plot_intervals[0]))))
-        self.ax.plot(list(utctime_intervals.value), self.list_alt, label='_nolegend_', c='k',
-                     marker=markers[object_count], mfc='None', mew=0.5, ls='', ms=7, alpha=0.7)
+                     marker=markers[object_count], ls='-', lw=1, ms=7, alpha=0.5,
+                     label='{0} [{1:}$^\circ$]'.format(self.name, self.get_moonsep(str(plot_intervals[0]))))
 
-        for time_obs in plot_intervals:
-            self.ax.text(time_obs.value, self.get_altitude(str(time_obs)) + 0.5, self.get_moonsep(str(time_obs)),
-                         fontsize=9, color='white', alpha=0.8)
+        # for time_obs in plot_intervals:
+        #     self.ax.text(time_obs.value, self.get_altitude(str(time_obs)) + 0.5, self.get_moonsep(str(time_obs)),
+        #                  fontsize=9, color='white', alpha=0.8)
         object_count += 1
 
     def plot_in_local(self):
         global object_count
         plot_intervals = [time for time in moonsep_intervals if int(self.get_altitude(str(time))) > 0]
         self.ax.plot(list(localtime_intervals.value), self.list_alt, color=colors[object_count], ls='-', lw=1, ms=7,
-                     marker=markers[object_count], alpha=0.7, label='{0} [{1:}]'.format(self.name,
+                     marker=markers[object_count], alpha=0.5, label='{0} [{1:}$^\circ$]'.format(self.name,
                      self.get_moonsep(str(plot_intervals[0]))))
-        self.ax.plot(list(localtime_intervals.value), self.list_alt, label='_nolegend_', c='k',
-                     marker=markers[object_count], mfc='None', mew=0.5, ls='', ms=7, alpha=0.7)
 
-        for time_obs in plot_intervals:
-            local_time = time_obs + OBS_TIMEZONE * u.hour
-            self.ax.text(local_time.value, self.get_altitude(str(time_obs)) + 0.5, self.get_moonsep(str(time_obs)),
-                         fontsize=9, color='white', alpha=0.8)
+        # for time_obs in plot_intervals:
+        #     local_time = time_obs + OBS_TIMEZONE * u.hour
+        #     self.ax.text(local_time.value, self.get_altitude(str(time_obs)) + 0.5, self.get_moonsep(str(time_obs)),
+        #                  fontsize=9, color='white', alpha=0.8)
         object_count += 1
 
 # ------------------------------------------------------------------------------------------------------------------- #
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
-# Setting Plot Parameters
+# Plot Trajectories of Target List as viewed from a Specified Observatory
 # ------------------------------------------------------------------------------------------------------------------- #
 
 def plot_obsplan(ax_obj, utc=True):
     """
-    Sets plot parameters for plotting the trajectory of objects in sky.
+    Sets plot parameters for plotting the trajectory of targets in sky.
     Args:
         ax_obj  : Axes object over which the observatory planning plot is displayed
         utc     : Boolean value to be determine whether UTC or Local Time is to be used for plotting
@@ -258,7 +263,7 @@ def plot_obsplan(ax_obj, utc=True):
     def sign(value):
         return (float(value) > 0) - (float(value) < 0)
 
-    # Observatory Details
+    # Print Observatory Details
     # ------------------------------------------------------------------------------------------------------------- #
     lat_deg = '%7.4f' % Angle(OBS_LAT + ' degrees').degree
     long_deg = '%7.4f' % Angle(OBS_LONG + ' degrees').degree
@@ -279,7 +284,7 @@ def plot_obsplan(ax_obj, utc=True):
     display_text = text_name + text_lat + text_long + text_alt + '\n'
     # ------------------------------------------------------------------------------------------------------------- #
 
-    # Time
+    # Compute Time
     # ------------------------------------------------------------------------------------------------------------- #
     time_current = Time.now()
 
@@ -298,39 +303,10 @@ def plot_obsplan(ax_obj, utc=True):
     time_midnight = dusknauti.utc.datetime + (dawnnauti.utc.datetime - dusknauti.utc.datetime) / 2
     # ------------------------------------------------------------------------------------------------------------- #
 
-    # Set Plot Ticks
-    # ------------------------------------------------------------------------------------------------------------- #
-
-    ax_obj.xaxis.set_ticks_position('both')
-    ax_obj.xaxis.set_major_locator(HourLocator())
-    ax_obj.yaxis.set_major_locator(FixedLocator(range(0, 91, 10)))
-    ax_obj.yaxis.set_minor_locator(FixedLocator(range(0, 91, 1)))
-    ax_obj.xaxis.set_minor_locator(MinuteLocator(byminute=range(0, 60, 10)))
-    ax_obj.xaxis.set_major_formatter(DateFormatter('%H:%M'))
-    ax_obj.tick_params(axis='both', which='major', direction='in', width=1.6, length=9, labelsize=12)
-    ax_obj.tick_params(axis='both', which='minor', direction='in', width=0.9, length=5, labelsize=12)
-    # ------------------------------------------------------------------------------------------------------------- #
-
-    # Plot Settings
-    # ------------------------------------------------------------------------------------------------------------- #
-    ax_obj.grid(True, ls='--', lw=1)
-    ax_obj.set_ylim(0, 90)
-    ax_obj.set_xlim(sunset.value, sunrise.value)
-    ax_obj.legend(title='Target List', loc='center left', bbox_to_anchor=(1.05, 0.5), markerscale=1.6,
-                  ncol=1, frameon=True, shadow=True, fancybox=True, fontsize=14)
-    ax_obj.set_title(display_text, fontsize=16)
-    ax_obj.set_ylabel('Elevation [In Degrees]', fontsize=16)
-
-    if not utc:
-        ax_obj.set_xlabel('\nLocal Time [In Hours]\nCurrent Time : ' + str(time_print) + ' UT', fontsize=16)
-    else:
-        ax_obj.set_xlabel('\nUniversal Time [In Hours]\nCurrent Time : ' + str(time_print) + ' UT', fontsize=16)
-    # ------------------------------------------------------------------------------------------------------------- #
-
     # Print Text In The Plot
     # ------------------------------------------------------------------------------------------------------------- #
-    ax_obj.text(sunset.value, 93, 'Sunset', rotation=+50, color='orangered', fontsize=10)
-    ax_obj.text(sunrise.value - timedelta(minutes=10), 93, 'Sunrise', rotation=+50, color='orangered', fontsize=10)
+    ax_obj.text(sunset.value, 96, 'Sunset', rotation=+50, color='orangered', fontsize=10)
+    ax_obj.text(sunrise.value - timedelta(minutes=10), 96, 'Sunrise', rotation=+50, color='orangered', fontsize=10)
     ax_obj.text(duskcivil.value, 13, 'Civil Twilight', rotation=-90, color='navy', alpha=1, fontsize=10)
     ax_obj.text(dawncivil.value, 13, 'Civil Twilight', rotation=-90, color='navy', alpha=1, fontsize=10)
     ax_obj.text(dusknauti.value, 17, 'Nautical Twilight', rotation=-90, color='navy', alpha=1, fontsize=10)
@@ -394,25 +370,55 @@ def plot_obsplan(ax_obj, utc=True):
 
     # ------------------------------------------------------------------------------------------------------------- #
 
+    # Set Plotting Tick Parameters
+    # ------------------------------------------------------------------------------------------------------------- #
+    ax_obj.xaxis.set_ticks_position('both')
+    ax_obj.xaxis.set_major_locator(HourLocator())
+    ax_obj.yaxis.set_major_locator(FixedLocator(range(0, 91, 10)))
+    ax_obj.yaxis.set_minor_locator(FixedLocator(range(0, 91, 2)))
+    ax_obj.xaxis.set_minor_locator(MinuteLocator(byminute=range(0, 60, 10)))
+    ax_obj.xaxis.set_major_formatter(DateFormatter('%H:%M'))
+    ax_obj.tick_params(axis='both', which='major', direction='in', width=1.6, length=9, labelsize=12)
+    ax_obj.tick_params(axis='both', which='minor', direction='in', width=0.9, length=5, labelsize=12)
+    # ------------------------------------------------------------------------------------------------------------- #
+
     # Plot The Y-Axis On The RHS With Airmass
     # ------------------------------------------------------------------------------------------------------------- #
     list_secz = []
     for altitude in ax_obj.get_yticks():
-        if (1 / math.cos(math.radians(90 - altitude))) < 10:
-            list_secz.append('%5.2f' % (1 / math.cos(math.radians(90 - altitude))))
+        if (1 / np.cos(np.radians(90 - altitude))) < 10:
+            list_secz.append('%5.2f' % (1 / np.cos(np.radians(90 - altitude))))
         else:
             list_secz.append('NaN')
 
     ax_twin = ax_obj.twinx()
     ax_twin.set_ylim(0, 90)
     ax_twin.set_yticklabels(list_secz)
-    ax_twin.set_ylabel('Airmass', fontsize=16)
     ax_twin.set_yticks(ax_obj.get_yticks())
     ax_twin.set_yticks(ax_obj.get_yticks(minor=True), minor=True)
     ax_twin.tick_params(axis='both', which='major', direction='in', width=1.6, length=9, labelsize=12)
     ax_twin.tick_params(axis='both', which='minor', direction='in', width=0.9, length=5, labelsize=12)
     # ------------------------------------------------------------------------------------------------------------- #
+    
+    # Set Plot Global Parameters
+    # ------------------------------------------------------------------------------------------------------------- #
+    ax_obj.set_ylim(0, 90)
+    ax_obj.set_xlim(sunset.value, sunrise.value)
+    ax_obj.legend(title='Target List [Moon Angle]', loc='center left', bbox_to_anchor=(1.05, 0.5), markerscale=1.6,
+                  ncol=1, shadow=True, fancybox=True, fontsize=14)    
+    ax_obj.grid(True, ls='--', lw=1)
+    ax_obj.set_title(display_text, fontsize=16)
+    ax_obj.set_ylabel('Elevation [In Degrees]', fontsize=16)
+    ax_twin.set_ylabel('Airmass', fontsize=16)
+    
+    if not utc:
+        ax_obj.set_xlabel('\nLocal Time [In Hours]\nCurrent Time : ' + str(time_print) + ' UT', fontsize=16)
+    else:
+        ax_obj.set_xlabel('\nUniversal Time [In Hours]\nCurrent Time : ' + str(time_print) + ' UT', fontsize=16)
+    # ------------------------------------------------------------------------------------------------------------- #
 
+    # Show and Save the Plot
+    # ------------------------------------------------------------------------------------------------------------- #
     ax_obj.autoscale_view()
     fig.autofmt_xdate()
     fig.savefig('SkyPlan_{0}.pdf'.format(date_obs), format='pdf', dpi=2000, bbox_inches='tight')
@@ -436,7 +442,8 @@ for index, value in enumerate(list_values):
         ObjectToObs(object_name='Object ' + str(int(index) + 1), object_ra=value.split()[-2],
                     object_dec=value.split()[-1], plot_ax=ax).plot_objtrack(utc=choice_utc)
     else:
-        print ("Error : Both RA & DEC For Object {} Need To Be Specified".format(str(int(index) + 1)))
+        print ("ERROR : Both RA & DEC for the Object '{}' need to be specified".format(str(int(index) + 1)))
+        continue
 
 plot_obsplan(ax_obj=ax, utc=choice_utc)
-# ------------------------------------------------------------------------------------------------------------------- #
+# ------------------------------------------------------------------------------------------------------------------- #    
