@@ -399,18 +399,18 @@ def plot_obsplan(ax_obj, utc=True):
     ax_twin.tick_params(axis='both', which='major', direction='in', width=1.6, length=9, labelsize=12)
     ax_twin.tick_params(axis='both', which='minor', direction='in', width=0.9, length=5, labelsize=12)
     # ------------------------------------------------------------------------------------------------------------- #
-    
+
     # Set Plot Global Parameters
     # ------------------------------------------------------------------------------------------------------------- #
     ax_obj.set_ylim(0, 90)
     ax_obj.set_xlim(sunset.value, sunrise.value)
     ax_obj.legend(title='Target List [Moon Angle]', loc='center left', bbox_to_anchor=(1.05, 0.5), markerscale=1.6,
-                  ncol=1, shadow=True, fancybox=True, fontsize=14)    
+                  ncol=1, shadow=True, fancybox=True, fontsize=14)
     ax_obj.grid(True, ls='--', lw=1)
     ax_obj.set_title(display_text, fontsize=16)
     ax_obj.set_ylabel('Elevation [In Degrees]', fontsize=16)
     ax_twin.set_ylabel('Airmass', fontsize=16)
-    
+
     if not utc:
         ax_obj.set_xlabel('\nLocal Time [In Hours]\nCurrent Time : ' + str(time_print) + ' UT', fontsize=16)
     else:
