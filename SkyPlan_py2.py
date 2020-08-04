@@ -219,11 +219,12 @@ class ObjectToObs:
 
     def plot_in_utc(self):
         global object_count
-        plot_intervals = [time for time in moonsep_intervals if int(self.get_altitude(str(time))) > 0]
+
         self.ax.plot(list(utctime_intervals.value), self.list_alt, c=colors[object_count],
                      marker=markers[object_count], ls='-', lw=1, ms=7, alpha=0.5,
-                     label='{0} [{1:}$^\circ$]'.format(self.name, self.get_moonsep(str(plot_intervals[0]))))
+                     label='{0} [{1:}$^\circ$]'.format(self.name, self.get_moonsep(str(moonsep_intervals[0]))))
 
+        # plot_intervals = [time for time in moonsep_intervals if int(self.get_altitude(str(time))) > 0]
         # for time_obs in plot_intervals:
         #     self.ax.text(time_obs.value, self.get_altitude(str(time_obs)) + 0.5, self.get_moonsep(str(time_obs)),
         #                  fontsize=9, color='white', alpha=0.8)
@@ -231,11 +232,11 @@ class ObjectToObs:
 
     def plot_in_local(self):
         global object_count
-        plot_intervals = [time for time in moonsep_intervals if int(self.get_altitude(str(time))) > 0]
         self.ax.plot(list(localtime_intervals.value), self.list_alt, color=colors[object_count], ls='-', lw=1, ms=7,
                      marker=markers[object_count], alpha=0.5, label='{0} [{1:}$^\circ$]'.format(self.name,
-                     self.get_moonsep(str(plot_intervals[0]))))
+                     self.get_moonsep(str(moonsep_intervals[0]))))
 
+        # ax_obj.text(time_current.value, 50, 'Current Time', rotation=-90, color='k', fontsize=10)
         # for time_obs in plot_intervals:
         #     local_time = time_obs + OBS_TIMEZONE * u.hour
         #     self.ax.text(local_time.value, self.get_altitude(str(time_obs)) + 0.5, self.get_moonsep(str(time_obs)),
@@ -326,7 +327,7 @@ def plot_obsplan(ax_obj, utc=True):
 
     if sunset.value < time_current.utc.datetime < sunrise.value:
         ax_obj.axvline(x=time_current.value, linestyle='--', color='k')
-        ax_obj.text(time_current.value, 70, 'Current Time', rotation=-90, color='k', fontsize=10)
+        ax_obj.text(time_current.value, 17, 'Current Time', rotation=-90, color='k', fontsize=10)
     # ------------------------------------------------------------------------------------------------------------- #
 
     # Fill Color In Sectors of Observation/Non-Observation
