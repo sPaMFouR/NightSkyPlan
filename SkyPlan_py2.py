@@ -89,7 +89,7 @@ telescope_df = pd.read_csv(list_telescopes, sep='\s+', comment='#').set_index('S
 if choice_telescope in telescope_df.index.values:
     (OBS_NAME, OBS_LONG, OBS_LAT, OBS_ALT, OBS_TIMEZONE) = telescope_df.loc[choice_telescope].values
 else:
-    print ("ERROR: Observatory Name '{0}' not found in the file '{1}'".format(choice_telescope, list_telescopes))
+    print("ERROR: Observatory Name '{0}' not found in the file '{1}'".format(choice_telescope, list_telescopes))
 
 # List of Targets
 box_msg = 'Verify Name, RA, DEC of objects for Observation planning'
@@ -135,8 +135,8 @@ telescope.date = (Time(date_obs) + 1 * u.day - abs(OBS_TIMEZONE) * u.hour).utc.d
 # Calculation Of Local Sunset & Sunrise [Elevation Of Sun = -0.34 Degrees]
 # ------------------------------------------------------------------------------------------------------------------- #
 telescope.horizon = '-0:34'
-sunset = telescope.previous_setting(ephem.Sun(), use_center=True)
-sunrise = telescope.next_rising(ephem.Sun(), use_center=True)
+sunset = telescope.previous_setting(ephem.Sun(), use_center=False)
+sunrise = telescope.next_rising(ephem.Sun(), use_center=False)
 
 sunset = Time(datetime.strptime(str(sunset).split('.')[0], '%Y/%m/%d %H:%M:%S'))
 sunrise = Time(datetime.strptime(str(sunrise).split('.')[0], '%Y/%m/%d %H:%M:%S'))
@@ -443,7 +443,7 @@ for index, value in enumerate(list_values):
         ObjectToObs(object_name='Object ' + str(int(index) + 1), object_ra=value.split()[-2],
                     object_dec=value.split()[-1], plot_ax=ax).plot_objtrack(utc=choice_utc)
     else:
-        print ("ERROR : Both RA & DEC for the Object '{}' need to be specified".format(str(int(index) + 1)))
+        print("ERROR : Both RA & DEC for the Object '{}' need to be specified".format(str(int(index) + 1)))
         continue
 
 plot_obsplan(ax_obj=ax, utc=choice_utc)
