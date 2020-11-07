@@ -100,7 +100,7 @@ list_values = remove_empty_values(list_values)
 while len(list_values) == 0:
     err_msg = box_msg + '\n\n ERROR: Aleast 1 Object required for Observation Planning!'
     list_values = eg.multenterbox(msg=err_msg, title=box_title, fields=field_names, values=list_values)
-    remove_empty_values(list_values)
+    list_values = remove_empty_values(list_values)
 
 # Plot wrt UTC or Local Time?
 choice_utc = eg.boolbox(msg='Plot Trajectories w.r.t UTC or Local Time?', title='UTC Or Local Time?',
@@ -132,40 +132,36 @@ telescope.date = (Time(date_obs) + 1 * u.day - abs(OBS_TIMEZONE) * u.hour).utc.d
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
-# Calculation Of Local Sunset & Sunrise [Elevation Of Sun = -0.34 Degrees]
+# Calculate Sunset, Sunrise and Twilight Times
 # ------------------------------------------------------------------------------------------------------------------- #
+# Calculation Of Local Sunset & Sunrise [Elevation Of Sun = -0.34 Degrees]
 telescope.horizon = '-0:34'
 sunset = telescope.previous_setting(ephem.Sun(), use_center=False)
 sunrise = telescope.next_rising(ephem.Sun(), use_center=False)
 
+# Calculation Of Civil Twilight         [Elevation Of Sun = -6 Degrees]
+telescope.horizon = '-6'
+dusk_civil = telescope.previous_setting(ephem.Sun(), use_center=True)
+dawn_civil = telescope.next_rising(ephem.Sun(), use_center=True)
+
+# Calculation Of Nautical Twilight      [Elevation Of Sun = -12 Degrees]
+telescope.horizon = '-12'
+dusk_nauti = telescope.previous_setting(ephem.Sun(), use_center=True)
+dawn_nauti = telescope.next_rising(ephem.Sun(), use_center=True)
+
+# Calculation Of Astronomical Twilight  [Elevation Of Sun = -18 Degrees]
+telescope.horizon = '-18'
+dusk_astro = telescope.previous_setting(ephem.Sun(), use_center=True)
+dawn_astro = telescope.next_rising(ephem.Sun(), use_center=True)
+
 sunset = Time(datetime.strptime(str(sunset).split('.')[0], '%Y/%m/%d %H:%M:%S'))
 sunrise = Time(datetime.strptime(str(sunrise).split('.')[0], '%Y/%m/%d %H:%M:%S'))
-# ------------------------------------------------------------------------------------------------------------------- #
-
-
-# ------------------------------------------------------------------------------------------------------------------- #
-# Calculation Of Civil Twilight        [Elevation Of Sun = -6 Degrees]
-# Calculation Of Nautical Twilight     [Elevation Of Sun = -12 Degrees]
-# Calculation Of Astronomical Twilight [Elevation Of Sun = -18 Degrees]
-# ------------------------------------------------------------------------------------------------------------------- #
-telescope.horizon = '-6'
-dusk_civiltwil = telescope.previous_setting(ephem.Sun(), use_center=True)
-dawn_civiltwil = telescope.next_rising(ephem.Sun(), use_center=True)
-
-telescope.horizon = '-12'
-dusk_nautitwil = telescope.previous_setting(ephem.Sun(), use_center=True)
-dawn_nautitwil = telescope.next_rising(ephem.Sun(), use_center=True)
-
-telescope.horizon = '-18'
-dusk_astrotwil = telescope.previous_setting(ephem.Sun(), use_center=True)
-dawn_astrotwil = telescope.next_rising(ephem.Sun(), use_center=True)
-
-duskcivil = Time(datetime.strptime(str(dusk_civiltwil).split('.')[0], '%Y/%m/%d %H:%M:%S'))
-dawncivil = Time(datetime.strptime(str(dawn_civiltwil).split('.')[0], '%Y/%m/%d %H:%M:%S'))
-dusknauti = Time(datetime.strptime(str(dusk_nautitwil).split('.')[0], '%Y/%m/%d %H:%M:%S'))
-dawnnauti = Time(datetime.strptime(str(dawn_nautitwil).split('.')[0], '%Y/%m/%d %H:%M:%S'))
-duskastro = Time(datetime.strptime(str(dusk_astrotwil).split('.')[0], '%Y/%m/%d %H:%M:%S'))
-dawnastro = Time(datetime.strptime(str(dawn_astrotwil).split('.')[0], '%Y/%m/%d %H:%M:%S'))
+duskcivil = Time(datetime.strptime(str(dusk_civil).split('.')[0], '%Y/%m/%d %H:%M:%S'))
+dawncivil = Time(datetime.strptime(str(dawn_civil).split('.')[0], '%Y/%m/%d %H:%M:%S'))
+dusknauti = Time(datetime.strptime(str(dusk_nauti).split('.')[0], '%Y/%m/%d %H:%M:%S'))
+dawnnauti = Time(datetime.strptime(str(dawn_nauti).split('.')[0], '%Y/%m/%d %H:%M:%S'))
+duskastro = Time(datetime.strptime(str(dusk_astro).split('.')[0], '%Y/%m/%d %H:%M:%S'))
+dawnastro = Time(datetime.strptime(str(dawn_astro).split('.')[0], '%Y/%m/%d %H:%M:%S'))
 # ------------------------------------------------------------------------------------------------------------------- #
 
 
@@ -325,8 +321,8 @@ def plot_obsplan(ax_obj, utc=True):
                 color='r', fontsize=12)
 
     if sunset.value < time_current.utc.datetime < sunrise.value:
-        ax_obj.axvline(x=time_current.value, linestyle='--', color='k')
-        ax_obj.text(time_current.value, 50, 'Current Time', rotation=-90, color='k', fontsize=10)
+        ax_obj.axvline(x=time_current.value, ls='--', color='k')
+        ax_obj.text(time_current.value, 7, 'Current Time', rotation=-90, color='k', fontsize=10)
     # ------------------------------------------------------------------------------------------------------------- #
 
     # Fill Color In Sectors of Observation/Non-Observation
@@ -357,16 +353,6 @@ def plot_obsplan(ax_obj, utc=True):
                         telescope_zenith - 0.5, facecolor='royalblue', alpha=0.4)
     ax_obj.fill_between([dawnastro.value, dawnnauti.value], telescope_horizon + 0.5,
                         telescope_zenith - 0.5, facecolor='royalblue', alpha=0.4)
-
-    # colarray = np.empty((1, 100, 4), dtype=float)
-    # rgb = mcolors.colorConverter.to_rgb('royalblue')
-    # colarray[:,:,:3] = rgb
-    # colarray[:,:,-1] = np.reshape(np.linspace(0, 1, 100)[:, None], (1, 100))
-
-    # ax_obj.imshow(colarray, aspect='auto', extent=[mdate_sunset, mdate_duskcivil,
-    #              telescope_horizon + 0.5, telescope_zenith - 0.5,], origin='lower', zorder=1)
-    # ax_obj.imshow(colarray, aspect='auto', extent=[mdate_dawncivil, mdate_sunrise,
-    #              telescope_horizon + 0.5, telescope_zenith - 0.5,], origin='lower', zorder=1)
 
     # ------------------------------------------------------------------------------------------------------------- #
 
@@ -404,8 +390,8 @@ def plot_obsplan(ax_obj, utc=True):
     # ------------------------------------------------------------------------------------------------------------- #
     ax_obj.set_ylim(0, 90)
     ax_obj.set_xlim(sunset.value, sunrise.value)
-    ax_obj.legend(title='Target List [Moon Angle]', loc='center left', bbox_to_anchor=(1.05, 0.5), markerscale=1.6,
-                  ncol=1, shadow=True, fancybox=True, fontsize=14)
+    ax_obj.legend(title='Target List [Moon Angle]', loc='center left', bbox_to_anchor=(1.05, 0.5),
+                  markerscale=1.6, ncol=1, shadow=True, fancybox=True, fontsize=14)
     ax_obj.grid(True, ls='--', lw=1)
     ax_obj.set_title(display_text, fontsize=16)
     ax_obj.set_ylabel('Elevation [In Degrees]', fontsize=16)
