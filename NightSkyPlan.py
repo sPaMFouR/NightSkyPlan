@@ -219,7 +219,6 @@ class ObjectToObs:
 
     def plot_in_utc(self):
         global object_count
-
         self.ax.plot(list(utctime_intervals.value), self.list_alt, c=colors[object_count],
                      marker=markers[object_count], ls='-', lw=1, ms=7, alpha=0.5,
                      label='{0} [{1:}$^\circ$]'.format(self.name, self.get_moonsep(str(moonsep_intervals[0]))))
@@ -236,7 +235,7 @@ class ObjectToObs:
                      marker=markers[object_count], alpha=0.5, label='{0} [{1:}$^\circ$]'.format(self.name,
                      self.get_moonsep(str(moonsep_intervals[0]))))
 
-        # ax_obj.text(time_current.value, 50, 'Current Time', rotation=-90, color='k', fontsize=10)
+        # plot_intervals = [time for time in moonsep_intervals if int(self.get_altitude(str(time))) > 0]
         # for time_obs in plot_intervals:
         #     local_time = time_obs + OBS_TIMEZONE * u.hour
         #     self.ax.text(local_time.value, self.get_altitude(str(time_obs)) + 0.5, self.get_moonsep(str(time_obs)),
@@ -306,14 +305,14 @@ def plot_obsplan(ax_obj, utc=True):
 
     # Print Text In The Plot
     # ------------------------------------------------------------------------------------------------------------- #
-    ax_obj.text(sunset.value, 96, 'Sunset', rotation=+50, color='orangered', fontsize=10)
-    ax_obj.text(sunrise.value - timedelta(minutes=10), 96, 'Sunrise', rotation=+50, color='orangered', fontsize=10)
-    ax_obj.text(duskcivil.value, 13, 'Civil Twilight', rotation=-90, color='navy', alpha=1, fontsize=10)
-    ax_obj.text(dawncivil.value, 13, 'Civil Twilight', rotation=-90, color='navy', alpha=1, fontsize=10)
-    ax_obj.text(dusknauti.value, 17, 'Nautical Twilight', rotation=-90, color='navy', alpha=1, fontsize=10)
-    ax_obj.text(dawnnauti.value, 17, 'Nautical Twilight', rotation=-90, color='navy', alpha=1, fontsize=10)
-    ax_obj.text(duskastro.value, 21, 'Astronomical Twilight', rotation=-90, color='navy', alpha=1, fontsize=10)
-    ax_obj.text(dawnastro.value, 21, 'Astronomical Twilight', rotation=-90, color='navy', alpha=1, fontsize=10)
+    ax_obj.text(sunset.value, 92, 'Sunset', rotation=+50, color='orangered', fontsize=10)
+    ax_obj.text(sunrise.value - timedelta(minutes=10), 92, 'Sunrise', rotation=+50, color='orangered', fontsize=10)
+    ax_obj.text(duskcivil.value, 7, 'Civil Twilight', rotation=-90, color='navy', alpha=1, fontsize=10)
+    ax_obj.text(dawncivil.value, 7, 'Civil Twilight', rotation=-90, color='navy', alpha=1, fontsize=10)
+    ax_obj.text(dusknauti.value, 5, 'Nautical Twilight', rotation=-90, color='navy', alpha=1, fontsize=10)
+    ax_obj.text(dawnnauti.value, 5, 'Nautical Twilight', rotation=-90, color='navy', alpha=1, fontsize=10)
+    ax_obj.text(duskastro.value, 3, 'Astronomical Twilight', rotation=-90, color='navy', alpha=1, fontsize=10)
+    ax_obj.text(dawnastro.value, 3, 'Astronomical Twilight', rotation=-90, color='navy', alpha=1, fontsize=10)
 
     night_span = sunrise.value - sunset.value
     ax_obj.text(sunset.value + night_span / 2 - timedelta(minutes=25), telescope_horizon - 3,
@@ -327,7 +326,7 @@ def plot_obsplan(ax_obj, utc=True):
 
     if sunset.value < time_current.utc.datetime < sunrise.value:
         ax_obj.axvline(x=time_current.value, linestyle='--', color='k')
-        ax_obj.text(time_current.value, 17, 'Current Time', rotation=-90, color='k', fontsize=10)
+        ax_obj.text(time_current.value, 50, 'Current Time', rotation=-90, color='k', fontsize=10)
     # ------------------------------------------------------------------------------------------------------------- #
 
     # Fill Color In Sectors of Observation/Non-Observation
