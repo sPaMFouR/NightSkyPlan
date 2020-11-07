@@ -421,7 +421,7 @@ def plot_obsplan(ax_obj, utc=True):
     # ------------------------------------------------------------------------------------------------------------- #
     ax_obj.autoscale_view()
     fig.autofmt_xdate()
-    fig.savefig('SkyPlan_{0}.pdf'.format(date_obs), format='pdf', dpi=2000, bbox_inches='tight')
+    fig.savefig('NightSkyPlan_{0}.pdf'.format(date_obs), format='pdf', dpi=2000, bbox_inches='tight')
     plt.show()
     plt.close(fig)
 
