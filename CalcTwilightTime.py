@@ -86,6 +86,13 @@ telescope.epoch = ephem.J2000
 # Calculate Sunset, Sunrise and Twilight Times
 # ------------------------------------------------------------------------------------------------------------------- #
 
+def sign(value):
+    """
+    Returns the sign of the input 'value'
+    """
+    return (float(value) > 0) - (float(value) < 0)
+
+
 def calculate_twilighttime(category='Sunset/Sunrise'):
     """
     It will compute Rising and Setting times for the twilight time specified by 'twilight'.
@@ -221,10 +228,10 @@ ax = fig.add_subplot(111)
 
 dates = [datetime.strptime(x, '%Y-%m-%d') for x in twilight_df.index.values]
 
-nightduration= [(datetime.strptime(x, '%H:%M:%S') - datetime(1900, 1, 1)).total_seconds() / 3600
-                for x in twilight_df['NightDuration']]
-nauticalnight= [(datetime.strptime(x, '%H:%M:%S') - datetime(1900, 1, 1)).total_seconds() / 3600
-                for x in twilight_df['NauticalNight']]
+nightduration = [(datetime.strptime(x, '%H:%M:%S') - datetime(1900, 1, 1)).total_seconds() / 3600
+                 for x in twilight_df['NightDuration']]
+nauticalnight = [(datetime.strptime(x, '%H:%M:%S') - datetime(1900, 1, 1)).total_seconds() / 3600
+                 for x in twilight_df['NauticalNight']]
 astronomicalnight = [(datetime.strptime(x, '%H:%M:%S') - datetime(1900, 1, 1)).total_seconds() / 3600
                      for x in twilight_df['AstronomicalNight']]
 
@@ -243,9 +250,6 @@ ax.tick_params(axis='both', which='major', direction='in', width=1.6, length=9, 
 ax.tick_params(axis='both', which='minor', direction='in', width=0.9, length=5, labelsize=12)
 
 # Print Observatory Details
-def sign(value):
-    return (float(value) > 0) - (float(value) < 0)
-
 lat_deg = '%7.4f' % Angle(OBS_LAT + ' degrees').degree
 long_deg = '%7.4f' % Angle(OBS_LONG + ' degrees').degree
 
