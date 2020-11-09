@@ -36,8 +36,6 @@ plt.rc('font', family='sans-serif')
 # ------------------------------------------------------------------------------------------------------------------- #
 list_targets = 'TargetList.dat'
 list_telescopes = 'TelescopeList.dat'
-telescope_horizon = 25
-telescope_zenith = 85
 
 target_df = pd.read_csv(list_targets, sep='\s+', comment='#').set_index('Index')
 target_df = target_df[target_df['ToPlot'].isin(['y', 'Y'])]
@@ -83,13 +81,13 @@ def remove_empty_values(list_values):
 # Manual Setup - GUI Code
 # ------------------------------------------------------------------------------------------------------------------- #
 # Telescope Details
-choice_telescope = eg.enterbox(msg='Enter The Name of the Telescope!', title='Name of the Telescope', default='HCT')
+telescope = eg.enterbox(msg='Enter The Name of the Telescope!', title='Name of the Telescope', default='HCT')
 telescope_df = pd.read_csv(list_telescopes, sep='\s+', comment='#').set_index('ShortName')
 
-if choice_telescope in telescope_df.index.values:
-    (OBS_NAME, OBS_LONG, OBS_LAT, OBS_ALT, OBS_TIMEZONE) = telescope_df.loc[choice_telescope].values
+if telescope in telescope_df.index.values:
+    (OBS_NAME, OBS_LONG, OBS_LAT, OBS_ALT, OBS_TIMEZONE, HORIZON, ZENITH) = telescope_df.loc[telescope].values
 else:
-    print("ERROR: Observatory Name '{0}' not found in the file '{1}'".format(choice_telescope, list_telescopes))
+    print("ERROR: Observatory Name '{0}' not found in the file '{1}'".format(telescope, list_telescopes))
 
 # List of Targets
 box_msg = 'Verify Name, RA, DEC of objects for Observation planning'
@@ -103,8 +101,8 @@ while len(list_values) == 0:
     list_values = remove_empty_values(list_values)
 
 # Plot wrt UTC or Local Time?
-choice_utc = eg.boolbox(msg='Plot Trajectories w.r.t UTC or Local Time?', title='UTC Or Local Time?',
-                        choices=['UTC', 'Local Time'])
+utc = eg.boolbox(msg='Plot Trajectories w.r.t UTC or Local Time?', title='UTC Or Local Time?',
+                 choices=['UTC', 'Local Time'])
 
 # Current Date or Manually Entered Date?
 date_obs = str(Time(Time.now(), format='iso', out_subfmt='date'))
@@ -113,7 +111,7 @@ setup_manual = eg.boolbox(msg='Manually Enter Date?', title='Manual or Current D
 if setup_manual:
     date_obs = eg.enterbox(msg='Enter The Date Of Observation!', title='Date Of Observation', default=date_obs)
 
-# choice_utc = True
+# utc = True
 # setup_manual = True
 # ------------------------------------------------------------------------------------------------------------------- #
 
@@ -282,7 +280,7 @@ def plot_obsplan(ax_obj, utc=True):
 
     # Compute Time
     # ------------------------------------------------------------------------------------------------------------- #
-    time_current = Time.now()
+    currenttime = Time.now()
 
     if not utc:
         sunset += OBS_TIMEZONE * u.hour
@@ -293,36 +291,33 @@ def plot_obsplan(ax_obj, utc=True):
         dawnnauti += OBS_TIMEZONE * u.hour
         duskastro += OBS_TIMEZONE * u.hour
         dawnastro += OBS_TIMEZONE * u.hour
-        time_current += OBS_TIMEZONE * u.hour
-
-    time_print = datetime.strptime(str(time_current).split('.')[0], '%Y-%m-%d %H:%M:%S')
-    time_midnight = dusknauti.utc.datetime + (dawnnauti.utc.datetime - dusknauti.utc.datetime) / 2
+        currenttime += OBS_TIMEZONE * u.hour
     # ------------------------------------------------------------------------------------------------------------- #
 
     # Print Text In The Plot
     # ------------------------------------------------------------------------------------------------------------- #
-    ax_obj.text(sunset.value, 92, 'Sunset', rotation=+50, color='orangered', fontsize=10)
-    ax_obj.text(sunrise.value - timedelta(minutes=10), 92, 'Sunrise', rotation=+50, color='orangered', fontsize=10)
-    ax_obj.text(duskcivil.value, 7, 'Civil Twilight', rotation=-90, color='navy', alpha=1, fontsize=10)
-    ax_obj.text(dawncivil.value, 7, 'Civil Twilight', rotation=-90, color='navy', alpha=1, fontsize=10)
-    ax_obj.text(dusknauti.value, 5, 'Nautical Twilight', rotation=-90, color='navy', alpha=1, fontsize=10)
-    ax_obj.text(dawnnauti.value, 5, 'Nautical Twilight', rotation=-90, color='navy', alpha=1, fontsize=10)
-    ax_obj.text(duskastro.value, 3, 'Astronomical Twilight', rotation=-90, color='navy', alpha=1, fontsize=10)
-    ax_obj.text(dawnastro.value, 3, 'Astronomical Twilight', rotation=-90, color='navy', alpha=1, fontsize=10)
+    ax_obj.text(sunset.value, 92, 'Sunset', rotation=50, c='orangered', fontsize=10)
+    ax_obj.text(sunrise.value - timedelta(minutes=10), 92, 'Sunrise', rotation=+50, c='orangered', fontsize=10)
+    ax_obj.text(duskcivil.value, 7, 'Civil Twilight', rotation=-90, c='navy', alpha=1, fontsize=10)
+    ax_obj.text(dawncivil.value, 7, 'Civil Twilight', rotation=-90, c='navy', alpha=1, fontsize=10)
+    ax_obj.text(dusknauti.value, 5, 'Nautical Twilight', rotation=-90, c='navy', alpha=1, fontsize=10)
+    ax_obj.text(dawnnauti.value, 5, 'Nautical Twilight', rotation=-90, c='navy', alpha=1, fontsize=10)
+    ax_obj.text(duskastro.value, 3, 'Astronomical Twilight', rotation=-90, c='navy', alpha=1, fontsize=10)
+    ax_obj.text(dawnastro.value, 3, 'Astronomical Twilight', rotation=-90, c='navy', alpha=1, fontsize=10)
 
-    night_span = sunrise.value - sunset.value
-    ax_obj.text(sunset.value + night_span / 2 - timedelta(minutes=25), telescope_horizon - 3,
-                'Telescope Horizon', color='navy', fontsize=10)
-    ax_obj.text(sunset.value + night_span / 2 - timedelta(minutes=25), telescope_zenith + 1,
-                'Telescope Zenith', color='navy', fontsize=10)
+    nightspan = dawnnauti.value - dusknauti.value
+    midnight = dusknauti.value + nightspan / 2
+    printtime = datetime.strptime(str(currenttime).split('.')[0], '%Y-%m-%d %H:%M:%S')
+    printnightspan = 'Night Span = {0}'.format(str(nightspan))
+    printmoonphase = 'Moon Illumination = {0:.1f}%'.format(ephem.Moon(midnight).phase)
 
-    percent_illumination = 'Moon Illumination = {0:.1f}%'.format(ephem.Moon(time_midnight).phase)
-    ax_obj.text(x=sunset.value + night_span / 2 - timedelta(minutes=35), y=91, s=percent_illumination,
-                color='r', fontsize=12)
+    ax_obj.text(midnight - timedelta(minutes=25), HORIZON - 3, 'Telescope Horizon', c='navy', fontsize=10)
+    ax_obj.text(midnight - timedelta(minutes=25), ZENITH + 1, 'Telescope Zenith', c='navy', fontsize=10)
+    ax_obj.text(midnight - timedelta(hours=2), 91, s=printnightspan + ', ' + printmoonphase, c='r', fontsize=12)
 
-    if sunset.value < time_current.utc.datetime < sunrise.value:
-        ax_obj.axvline(x=time_current.value, ls='--', color='k')
-        ax_obj.text(time_current.value, 7, 'Current Time', rotation=-90, color='k', fontsize=10)
+    if sunset.value < currenttime.utc.datetime < sunrise.value:
+        ax_obj.axvline(x=currenttime.value, ls='--', color='k')
+        ax_obj.text(currenttime.value, 7, 'Current Time', rotation=-90, c='k', fontsize=10)
     # ------------------------------------------------------------------------------------------------------------- #
 
     # Fill Color In Sectors of Observation/Non-Observation
@@ -337,23 +332,16 @@ def plot_obsplan(ax_obj, utc=True):
     ax_obj.axvline(x=dawnastro.value, ls='-', lw=1, color='k')
 
     ax_obj.set_facecolor('lightgrey')
-    ax_obj.fill_between(ax_obj.get_xbound(), telescope_horizon - 0.5, telescope_horizon + 0.5, facecolor='dimgrey')
-    ax_obj.fill_between(ax_obj.get_xbound(), telescope_zenith - 0.5, telescope_zenith + 0.5, facecolor='dimgrey')
-    ax_obj.fill_between(ax_obj.get_xbound(), telescope_horizon + 0.5, telescope_zenith - 0.5, facecolor='k')
+    ax_obj.fill_between(ax_obj.get_xbound(), HORIZON - 0.5, HORIZON + 0.5, fc='dimgrey')
+    ax_obj.fill_between(ax_obj.get_xbound(), ZENITH - 0.5, ZENITH + 0.5, fc='dimgrey')
+    ax_obj.fill_between(ax_obj.get_xbound(), HORIZON + 0.5, ZENITH - 0.5, fc='k')
 
-    ax_obj.fill_between([sunset.value, duskcivil.value], telescope_horizon + 0.5,
-                        telescope_zenith - 0.5, facecolor='royalblue', alpha=1)
-    ax_obj.fill_between([dawncivil.value, sunrise.value], telescope_horizon + 0.5,
-                        telescope_zenith - 0.5, facecolor='royalblue', alpha=1)
-    ax_obj.fill_between([duskcivil.value, dusknauti.value], telescope_horizon + 0.5,
-                        telescope_zenith - 0.5, facecolor='royalblue', alpha=0.7)
-    ax_obj.fill_between([dawnnauti.value, dawncivil.value], telescope_horizon + 0.5,
-                        telescope_zenith - 0.5, facecolor='royalblue', alpha=0.7)
-    ax_obj.fill_between([dusknauti.value, duskastro.value], telescope_horizon + 0.5,
-                        telescope_zenith - 0.5, facecolor='royalblue', alpha=0.4)
-    ax_obj.fill_between([dawnastro.value, dawnnauti.value], telescope_horizon + 0.5,
-                        telescope_zenith - 0.5, facecolor='royalblue', alpha=0.4)
-
+    ax_obj.fill_between([sunset.value, duskcivil.value], HORIZON + 0.5, ZENITH - 0.5, fc='royalblue', alpha=1)
+    ax_obj.fill_between([dawncivil.value, sunrise.value], HORIZON + 0.5, ZENITH - 0.5, fc='royalblue', alpha=1)
+    ax_obj.fill_between([duskcivil.value, dusknauti.value], HORIZON + 0.5, ZENITH - 0.5, fc='royalblue', alpha=0.7)
+    ax_obj.fill_between([dawnnauti.value, dawncivil.value], HORIZON + 0.5, ZENITH - 0.5, fc='royalblue', alpha=0.7)
+    ax_obj.fill_between([dusknauti.value, duskastro.value], HORIZON + 0.5, ZENITH - 0.5, fc='royalblue', alpha=0.4)
+    ax_obj.fill_between([dawnastro.value, dawnnauti.value], HORIZON + 0.5, ZENITH - 0.5, fc='royalblue', alpha=0.4)
     # ------------------------------------------------------------------------------------------------------------- #
 
     # Set Plotting Tick Parameters
@@ -398,9 +386,9 @@ def plot_obsplan(ax_obj, utc=True):
     ax_twin.set_ylabel('Airmass', fontsize=16)
 
     if not utc:
-        ax_obj.set_xlabel('\nLocal Time [In Hours]\nCurrent Time : ' + str(time_print) + ' UT', fontsize=16)
+        ax_obj.set_xlabel('\nLocal Time [In Hours]\nCurrent Time : ' + str(printtime) + ' UT', fontsize=16)
     else:
-        ax_obj.set_xlabel('\nUniversal Time [In Hours]\nCurrent Time : ' + str(time_print) + ' UT', fontsize=16)
+        ax_obj.set_xlabel('\nUniversal Time [In Hours]\nCurrent Time : ' + str(printtime) + ' UT', fontsize=16)
     # ------------------------------------------------------------------------------------------------------------- #
 
     # Show and Save the Plot
@@ -423,13 +411,13 @@ ax = fig.add_subplot(111)
 for index, value in enumerate(list_values):
     if len(value.split()) >= 3:
         ObjectToObs(object_name=value.split()[-3], object_ra=value.split()[-2],
-                    object_dec=value.split()[-1], plot_ax=ax).plot_objtrack(utc=choice_utc)
+                    object_dec=value.split()[-1], plot_ax=ax).plot_objtrack(utc=utc)
     elif len(value.split()) == 2:
         ObjectToObs(object_name='Object ' + str(int(index) + 1), object_ra=value.split()[-2],
-                    object_dec=value.split()[-1], plot_ax=ax).plot_objtrack(utc=choice_utc)
+                    object_dec=value.split()[-1], plot_ax=ax).plot_objtrack(utc=utc)
     else:
         print("ERROR : Both RA & DEC for the Object '{}' need to be specified".format(str(int(index) + 1)))
         continue
 
-plot_obsplan(ax_obj=ax, utc=choice_utc)
+plot_obsplan(ax_obj=ax, utc=utc)
 # ------------------------------------------------------------------------------------------------------------------- #
