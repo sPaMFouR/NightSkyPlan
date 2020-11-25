@@ -65,8 +65,8 @@ columns = ['Sunset', 'DuskCivil', 'DuskNautical', 'DuskAstronomical', 'DawnAstro
 printcols = eg.multchoicebox('Choose the Appropriate Columns for the Output file', title='Output Columns',
                              choices=columns, preselect=[2, 5, 11, 12, 13])
 
-# Plot Times in UTC or Local Time?
-utc = eg.boolbox(msg='Plot Times in UTC or Local Time?', title='UTC Or Local Time?', choices=['UTC', 'Local Time'])
+# Calculate Times in UTC or Local Time?
+utc = eg.boolbox(msg='Calculate Times in UTC or Local Time?', title='Time Zone', choices=['UTC', 'Local Time'])
 # ------------------------------------------------------------------------------------------------------------------- #
 
 
