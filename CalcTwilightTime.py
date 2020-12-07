@@ -208,7 +208,7 @@ def get_twilighttimes(time_df, date_obs):
 # Calculate the Twilight Times for the Range of Dates
 # ------------------------------------------------------------------------------------------------------------------- #
 [datestart, dateend] = daterange
-localdate_duration = np.arange(Time(datestart), Time(dateend), 1 * u.d)
+localdate_duration = np.arange(Time(datestart), Time(dateend) + 1 * u.d, 1 * u.d)
 
 twilight_df = pd.DataFrame()
 plot = pd.DataFrame()
