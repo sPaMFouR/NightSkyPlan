@@ -235,9 +235,16 @@ nauticalnight = [(datetime.strptime(x, '%H:%M:%S') - datetime(1900, 1, 1)).total
 astronomicalnight = [(datetime.strptime(x, '%H:%M:%S') - datetime(1900, 1, 1)).total_seconds() / 3600
                      for x in twilight_df['AstronomicalNight']]
 
-ax.plot(dates, nightduration, marker='o', ls='', mfc='k', ms=7, c='orangered', alpha=0.5, label='Sunset-To-Sunrise')
-ax.plot(dates, nauticalnight, marker='^', ls='', mfc='k', ms=7, c='dodgerblue', alpha=0.5, label='Nautical Night')
-ax.plot(dates, astronomicalnight, marker='s', ls='', mfc='k', ms=7, c='navy', alpha=0.5, label='Astronomical Night')
+ax.plot(dates, nightduration, marker='o', ls='', mfc='dimgrey', mew=2, ms=7, c='orangered',
+        alpha=0.5, label='Sunset-To-Sunrise')
+ax.plot(dates, nauticalnight, marker='^', ls='', mfc='dimgrey', mew=2, ms=7, c='dodgerblue',
+        alpha=0.5, label='Nautical Night')
+ax.plot(dates, astronomicalnight, marker='s', ls='', mfc='dimgrey', mew=2, ms=7, c='navy',
+        alpha=0.5, label='Astronomical Night')
+# ax.fill_between(dates, nightduration, color='orangered', alpha=0.2)
+# ax.fill_between(dates, nauticalnight, color='dodgerblue', alpha=0.2)
+# ax.fill_between(dates, astronomicalnight, color='navy', alpha=0.2)
+
 
 ax.legend(markerscale=2, frameon=True, fancybox=True, shadow=True, fontsize=14)
 ax.xaxis.set_ticks_position('both')
