@@ -1,10 +1,9 @@
 # NightSkyPlan: Night Sky Planner #
 
 [![Build Status](https://img.shields.io/badge/release-0.1-orange)](https://github.com/sPaMFouR/NightSkyPlan)
-[![Python 2.7](https://img.shields.io/badge/python-2.7-blue.svg)](https://www.python.org/downloads/release/python-271/)
 [![Python 3.7](https://img.shields.io/badge/python-3.7.2-brightgreen.svg)](https://www.python.org/downloads/release/python-372/)
 
-NightSkyPlan is a python script to help astronomers plan night sky observations from ground based obsbervatories. The script is available in both python2 and python3 versions. Observatory details can be added to the file 'TelescopeList.dat' and chosen when the script runs.
+NightSkyPlan is a python script to help astronomers plan night sky observations from ground based obsbervatories. Observatory details can be added to the file 'TelescopeList.dat' and chosen when the script runs.
 
 Features:
 1) Determines observability of targets specified in 'TargetsList.dat' from the chosen observatory.
