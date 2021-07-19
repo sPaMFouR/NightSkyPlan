@@ -7,6 +7,7 @@
 # ------------------------------------------------------------------------------------------------------------------- #
 # Import Required Libraries
 # ------------------------------------------------------------------------------------------------------------------- #
+import sys
 import ephem
 import numpy as np
 import pandas as pd
@@ -83,7 +84,7 @@ telescope.epoch = ephem.J2000
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
-# Calculate Sunset, Sunrise and Twilight Times
+# Utility Functions
 # ------------------------------------------------------------------------------------------------------------------- #
 
 def sign(value):
@@ -92,6 +93,25 @@ def sign(value):
     """
     return (float(value) > 0) - (float(value) < 0)
 
+
+def display_text(text_to_display):
+    """
+    Displays text mentioned in the string 'text_to_display'
+    Args:
+        text_to_display : Text to be displayed
+    Returns:
+        None
+    """
+    print("\n" + "# " + "-" * (12 + len(text_to_display)) + " #")
+    print("# " + "-" * 5 + " " + str(text_to_display) + " " + "-" * 5 + " #")
+    print("# " + "-" * (12 + len(text_to_display)) + " #" + "\n")
+
+# ------------------------------------------------------------------------------------------------------------------- #
+
+
+# ------------------------------------------------------------------------------------------------------------------- #
+# Calculate Sunset, Sunrise and Twilight Times
+# ------------------------------------------------------------------------------------------------------------------- #
 
 def calculate_twilighttime(category='Sunset/Sunrise'):
     """
@@ -102,11 +122,14 @@ def calculate_twilighttime(category='Sunset/Sunrise'):
         setting  : Setting time for the twilight
         rising   : Rising time for the twilight
     """
-    telescope.horizon = dict_twilights[category][0]
-    setting = telescope.previous_setting(ephem.Sun(), use_center=dict_twilights[category][1])
-    rising = telescope.next_rising(ephem.Sun(), use_center=dict_twilights[category][1])
-
-    return setting, rising
+    if category in dict_twilights:
+        telescope.horizon = dict_twilights[category][0]
+        setting = telescope.previous_setting(ephem.Sun(), use_center=dict_twilights[category][1])
+        rising = telescope.next_rising(ephem.Sun(), use_center=dict_twilights[category][1])
+        return setting, rising
+    else:
+        display_text("ERROR: Invalid Category Chosen '{0}'".format(category))
+        sys.exit(1)
 
 
 def calculate_moontime(time_midnight):
@@ -244,7 +267,6 @@ ax.plot(dates, astronomicalnight, marker='s', ls='', mfc='dimgrey', mew=2, ms=7,
 # ax.fill_between(dates, nightduration, color='orangered', alpha=0.2)
 # ax.fill_between(dates, nauticalnight, color='dodgerblue', alpha=0.2)
 # ax.fill_between(dates, astronomicalnight, color='navy', alpha=0.2)
-
 
 ax.legend(markerscale=2, frameon=True, fancybox=True, shadow=True, fontsize=14)
 ax.xaxis.set_ticks_position('both')
