@@ -24,9 +24,9 @@ Output File(s): `MoonPhaseAngle.asc`<br />
 'CalcMoonAnglePhase.py' is a python script designed to aid in computing details about moon phase and moon separation for observations of photometric standards.
 The code is still under development.
 
-[`TelescopeList.dat`]: https://github.com/sPaMFouR/NightSkyPlan/TelescopeList.dat
-[`TargetList.dat(optional)`]: https://github.com/sPaMFouR/NightSkyPlan/TargetList.dat
-[`DateList.dat(optional)`]: https://github.com/sPaMFouR/NightSkyPlan/DateList.dat
+[`TelescopeList.dat`]: https://github.com/sPaMFouR/NightSkyPlan/blob/master/TelescopeList.dat
+[`TargetList.dat(optional)`]: https://github.com/sPaMFouR/NightSkyPlan/blob/master/TargetList.dat
+[`DateList.dat(optional)`]: https://github.com/sPaMFouR/NightSkyPlan/blob/master/DateList.dat
 
 
 Requirements
