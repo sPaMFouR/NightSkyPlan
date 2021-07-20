@@ -9,12 +9,13 @@
 # ------------------------------------------------------------------------------------------------------------------- #
 import glob
 import ephem
+import numpy as np
 import pandas as pd
 import easygui as eg
 from astropy.io import fits
-from astropy.time import Time
-from astropy.coordinates import Angle
+from astropy import units as u
 from datetime import datetime, timedelta
+from astropy.coordinates import Angle, SkyCoord
 # ------------------------------------------------------------------------------------------------------------------- #
 
 
@@ -96,38 +97,64 @@ def get_timeradec(filename):
     return time_obs, ra, dec
 
 
-def get_moonphaseandangle(time_obs, ra, dec):
+def get_galacticcoord(ra, dec):
     """
-    The function computes moon separation for the object ('ra', 'dec') at the time of observation 
-    and the moon phase at the same time.
+    Computes Galactic Coordinates (l, b) of the source from Right Ascension 'ra' and Declination 'dec'.
     Args:
-        time_obs   : Time of observation for which moon angle and moon separation have to be computed
+        ra   : Right Ascension of the source for which galactic coordinates have to be computed
+        dec  : Declination of the source for which galactic coordinates have to be computed
+    Returns:
+        l    : Galactic latitude of the source
+        b    : Declination of the source
+    """
+    ra = Angle(ra + ' hours').degree
+    dec = Angle(dec + ' degrees').degree
+    coord = SkyCoord(ra=ra*u.degree, dec=dec*u.degree, frame='icrs')
+    galcoord = coord.galactic
+    l, b = round(galcoord.l.degree, 2), round(galcoord.b.degree, 2)
+    return l, b
+
+
+def get_moonphaseandangle(time, ra, dec):
+    """
+    The function computes moon separation for the object ('ra', 'dec') at the time of observation 'time' 
+    and the moon phase.
+    Args:
+        time       : Time of observation for which moon angle and moon separation have to be computed
         ra         : Right Ascension of the source for which moon angle has to be computed
         dec        : Declination of the source for which moon angle has to be computed
     Returns:
-        moon_sep   : Computed Moon separation for the object ('ra', 'dec') at the time of observation
-        moon_phase : Computed Moon Phase at the time of observation
+        moon_sep   : Moon separation for the object ('ra', 'dec') at the time of observation
+        moon_phase : Moon Phase at the time of observation
+        altitude   : Altitude of the source at the time of observation
+        airmass    : Airmass for the source at the time of observation
+        l          : Galactic longitude of the source at the time of observation
+        b          : Galactic latitude for the source at the time of observation
     """
     # Declare the Object of Observation
-    object = ephem.FixedBody()
-    object._epoch = ephem.J2000
-    object._ra = ra
-    object._dec = dec
+    object_obs = ephem.FixedBody()
+    object_obs._epoch = ephem.J2000
+    object_obs._ra = ra
+    object_obs._dec = dec
 
-    time_obs = datetime.strptime(time_obs, datetime_format)
+    time_obs = datetime.strptime(time, datetime_format)
     if not utc:
         time_obs += timedelta(hours=OBS_TIMEZONE)
 
     # Calculation of Moon Phase and Moon Angle
     telescope.date = time_obs
-    object.compute(telescope)
-    moon_phase = '{0:.2f}'.format(ephem.Moon(time_obs).phase)
-
-    moon_pos = ephem.Moon(str(time_obs))
-    moon_seprad = ephem.separation(object, moon_pos)
+    object_obs.compute(telescope)
+    moon = ephem.Moon(time_obs)
+    moon_phase = '{0:.2f}'.format(moon.phase)
+    moon_seprad = ephem.separation(object_obs, moon)
     moon_sep = '{0:.2f}'.format(Angle(str(moon_seprad) + ' degrees').degree)
 
-    return moon_sep, moon_phase
+    # Calculation of Altitude, Airmass and Galactic Coordinates
+    altitude = round(Angle(str(object_obs.alt) + ' degrees').degree, 2)
+    airmass = round(1 / np.cos(np.radians(90 - altitude)), 2)
+    l, b = get_galacticcoord(ra, dec)
+
+    return moon_sep, moon_phase, altitude, airmass, l, b
 
 # ------------------------------------------------------------------------------------------------------------------- #
 
@@ -135,25 +162,23 @@ def get_moonphaseandangle(time_obs, ra, dec):
 # ------------------------------------------------------------------------------------------------------------------- #
 # Calculate the Moon Phase and Moon Angle for the Input (DateList.dat or FITS Files)
 # ------------------------------------------------------------------------------------------------------------------- #
+output_cols = ['FileName', 'Date', 'RA', 'DEC', 'MoonAngle', 'MoonPhase', 'Altitude', 'Airmass', 'GLON', 'GLAT']
+
 if bool_choice:
     moon_df = datelist_df.copy()
     for index in datelist_df.index.values:
-        time_obs, ra, dec = tuple(datelist_df.loc[index])
-        moon_sep, moon_phase = get_moonphaseandangle(time_obs, ra, dec)
-        moon_df.loc[index, 'MoonAngle'] = moon_sep
-        moon_df.loc[index, 'MoonPhase'] = moon_phase
+        time, ra, dec = tuple(datelist_df.loc[index])
+        output_val = get_moonphaseandangle(time, ra, dec)
+        for idx, column in enumerate(output_cols[4:]):
+            moon_df.loc[index, output_cols[idx]] = output_val[idx]
 else:
     moon_df = pd.DataFrame()
     for index, filename in enumerate(glob.glob(ctext)):
-        time_obs, ra, dec = get_timeradec(filename)
-        moon_sep, moon_phase = get_moonphaseandangle(time_obs, ra, dec)
-        moon_df.loc[index, 'FileName'] = filename
-        moon_df.loc[index, 'Date'] = time_obs
-        moon_df.loc[index, 'RA'] = ra
-        moon_df.loc[index, 'DEC'] = dec
-        moon_df.loc[index, 'MoonAngle'] = moon_sep
-        moon_df.loc[index, 'MoonPhase'] = moon_phase
-        print (moon_df)
-        
+        time, ra, dec = get_timeradec(filename)
+        output_val = get_moonphaseandangle(time, ra, dec)
+        output_list = [filename, time, ra, dec] + list(output_val)
+        for idx, column in enumerate(output_cols):
+            moon_df.loc[index, output_cols[idx]] = output_list[idx]
+
 moon_df.to_csv('MoonPhaseAngle.asc', sep=' ', index=False)
 # ------------------------------------------------------------------------------------------------------------------- #
