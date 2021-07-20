@@ -7,6 +7,7 @@
 # ------------------------------------------------------------------------------------------------------------------- #
 # Import Required Libraries
 # ------------------------------------------------------------------------------------------------------------------- #
+import os
 import ephem
 import numpy as np
 import pandas as pd
@@ -16,8 +17,6 @@ from astropy.time import Time
 from astropy.coordinates import Angle
 from datetime import datetime, timedelta
 
-from matplotlib import rc
-import matplotlib.colors as mcolors
 from matplotlib import pyplot as plt
 from matplotlib.ticker import FixedLocator
 from matplotlib.dates import DateFormatter, MinuteLocator, HourLocator
@@ -39,12 +38,6 @@ list_telescopes = 'TelescopeList.dat'
 
 dict_twilights = {'Civil': ['-6', True], 'Nautical': ['-12', True], 'Astronomical': ['-18', True],
                   'Sunset/Sunrise': ['-0.34', False], 'Moonset/Moonrise': ['-0.34', False]}
-
-target_df = pd.read_csv(list_targets, sep='\s+', comment='#').set_index('Index')
-target_df = target_df[target_df['ToPlot'].isin(['y', 'Y'])]
-field_names = ['Object {0}'.format(idx) for idx in target_df.index.values]
-field_values = [target_df.loc[idx, 'Name'] + ' ' + target_df.loc[idx, 'RA'] + ' ' + target_df.loc[idx, 'DEC'] for idx
-                in target_df.index.values]
 # ------------------------------------------------------------------------------------------------------------------- #
 
 
@@ -93,6 +86,16 @@ else:
     print("ERROR: Observatory Name '{0}' not found in the file '{1}'".format(telescope, list_telescopes))
 
 # List of Targets
+if os.path.exists(list_targets):
+    target_df = pd.read_csv(list_targets, sep='\s+', comment='#').set_index('Index')
+    target_df = target_df[target_df['ToPlot'].isin(['y', 'Y'])]
+    field_names = ['Object {0}'.format(idx) for idx in target_df.index.values]
+    field_values = [target_df.loc[idx, 'Name'] + ' ' + target_df.loc[idx, 'RA'] + ' ' + target_df.loc[idx, 'DEC']
+                    for idx in target_df.index.values]
+else:
+    field_names = ['Object {0}'.format(idx + 1) for idx in range(8)]
+    field_values = [''] * 8
+
 box_msg = 'Verify Name, RA, DEC of objects for Observation planning'
 box_title = 'Details of Objects'
 list_values = eg.multenterbox(msg=box_msg, title=box_title, fields=field_names, values=field_values)
