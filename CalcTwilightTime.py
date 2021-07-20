@@ -190,7 +190,7 @@ def get_twilighttimes(time_df, date_obs):
     # Calculation Of Astronomical Twilight [Elevation Of Sun = -18 Degrees]
     dusk_astro, dawn_astro = calculate_twilighttime('Astronomical')
 
-    # Calculation of Maximum Illumination of Moon During the Night
+    # Calculation of Maximum Phase of Moon During the Night
     list_moonphases = []
     for time in np.arange(time_prevnight, time_midnight, timedelta(minutes=15)).astype(datetime):
         time = datetime.strftime(time, '%Y/%m/%d %H:%M:%S')

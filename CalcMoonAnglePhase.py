@@ -155,5 +155,5 @@ else:
         moon_df.loc[index, 'MoonPhase'] = moon_phase
         print (moon_df)
         
-moon_df.to_csv('MoonPhaseAngle', sep=' ', index=False)
+moon_df.to_csv('MoonPhaseAngle.asc', sep=' ', index=False)
 # ------------------------------------------------------------------------------------------------------------------- #

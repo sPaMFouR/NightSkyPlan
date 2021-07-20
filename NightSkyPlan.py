@@ -353,7 +353,7 @@ def plot_obsplan(ax_obj, utc=True):
     midnight = dusknauti.value + nightspan / 2
     printtime = datetime.strptime(str(currenttime).split('.')[0], '%Y-%m-%d %H:%M:%S')
     printnightspan = 'Night Span = {0}'.format(str(nightspan))
-    printmoonphase = 'Moon Illumination = {0:.1f}%'.format(ephem.Moon(midnight).phase)
+    printmoonphase = 'Moon Phase = {0:.1f}%'.format(ephem.Moon(midnight).phase)
     printdate = 'Date of Observation : {0}'.format(date_obs)
 
     ax_obj.text(midnight - timedelta(minutes=25), HORIZON - 2, 'Telescope Horizon', c='navy', fontsize=9)
