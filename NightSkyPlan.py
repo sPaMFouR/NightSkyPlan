@@ -412,9 +412,9 @@ def plot_obsplan(ax_obj, utc=True):
 
     ax_twin = ax_obj.twinx()
     ax_twin.set_ylim(0, 90)
-    ax_twin.set_yticklabels(list_secz)
     ax_twin.set_yticks(ax_obj.get_yticks())
     ax_twin.set_yticks(ax_obj.get_yticks(minor=True), minor=True)
+    ax_twin.set_yticklabels(list_secz)
     ax_twin.tick_params(axis='both', which='major', direction='in', width=1.6, length=8, labelsize=12)
     ax_twin.tick_params(axis='both', which='minor', direction='in', width=0.9, length=5, labelsize=12)
     # ------------------------------------------------------------------------------------------------------------- #
