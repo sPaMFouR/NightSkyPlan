@@ -239,7 +239,7 @@ for localdate in localdate_duration:
     twilight_df = get_twilighttimes(twilight_df, localdate)
 
 twilight_df.index.name = 'Date'
-twilight_df[printcols].to_csv('TwilightTimes_{0}To{1}'.format(datestart, dateend), sep='\t')
+twilight_df[printcols].to_csv('TwilightTimes_{0}To{1}.asc'.format(datestart, dateend), sep='\t')
 # ------------------------------------------------------------------------------------------------------------------- #
 
 
