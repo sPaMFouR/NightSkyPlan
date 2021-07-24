@@ -1,7 +1,7 @@
 # NightSkyPlan: Night Sky Planner #
 
 [![Build Status](https://img.shields.io/badge/release-0.1-orange)](https://github.com/sPaMFouR/NightSkyPlan)
-[![Python 3.7](https://img.shields.io/badge/python--3.7.4-nightskyplanner-brightgreen)](https://www.python.org/downloads/release/python-374/)
+[![Python 3.7](https://img.shields.io/badge/python3.7.4-nightskyplan-green)](https://www.python.org/downloads/release/python-374/)
 
 The directory contains python scipts to aid with planning of night sky observations, planning for proposal cycles, designing a proposal cycle with details about the duration of night and length of the night etc, and also extracting information of moon phase and moon separation for observations of photometric standards. The directory currently hosts the following codes:
 
