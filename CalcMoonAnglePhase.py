@@ -169,14 +169,16 @@ if bool_choice:
     for index in datelist_df.index.values:
         time, ra, dec = tuple(datelist_df.loc[index])
         output_val = get_moonphaseandangle(time, ra, dec)
-        for idx, column in enumerate(output_cols[4:]):
-            moon_df.loc[index, output_cols[idx]] = output_val[idx]
+        modoutput_cols = output_cols[4:]
+        for idx, column in enumerate(modoutput_cols):
+            moon_df.loc[index, modoutput_cols[idx]] = output_val[idx]
 else:
     moon_df = pd.DataFrame()
     for index, filename in enumerate(glob.glob(ctext)):
         time, ra, dec = get_timeradec(filename)
         output_val = get_moonphaseandangle(time, ra, dec)
         output_list = [filename, time, ra, dec] + list(output_val)
+        print (output_list, output_cols)
         for idx, column in enumerate(output_cols):
             moon_df.loc[index, output_cols[idx]] = output_list[idx]
 
