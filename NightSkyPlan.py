@@ -8,6 +8,7 @@
 # Import Required Libraries
 # ------------------------------------------------------------------------------------------------------------------- #
 import os
+import sys
 import ephem
 import numpy as np
 import pandas as pd
@@ -31,30 +32,33 @@ plt.rc('font', family='sans-serif')
 
 # ------------------------------------------------------------------------------------------------------------------- #
 # Global Variables
-# Target List
 # ------------------------------------------------------------------------------------------------------------------- #
+# List of Targets and Telescopes
 list_targets = 'TargetList.dat'
 list_telescopes = 'TelescopeList.dat'
 
+# Defaults for computing Twilights and Setting/Rising Times
 dict_twilights = {'Civil': ['-6', True], 'Nautical': ['-12', True], 'Astronomical': ['-18', True],
                   'Sunset/Sunrise': ['-0.34', False], 'Moonset/Moonrise': ['-0.34', False]}
-# ------------------------------------------------------------------------------------------------------------------- #
 
-
-# ------------------------------------------------------------------------------------------------------------------- #
 # Defaults Used In Plotting Trajectories (Including Colors)
-# ------------------------------------------------------------------------------------------------------------------- #
 time_offset = 0
 object_count = 0
-
 colors = ['r', 'sandybrown', 'gold', 'darkorange', 'salmon', 'deeppink', 'limegreen', 'teal', 'y', 'brown', 'c']
 markers = ['o', '^', 'v', 'd', 'P', 'X', 'p', 'h', 'D', '4', '+', 's']
 # ------------------------------------------------------------------------------------------------------------------- #
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
-# Function For Removing Empty Entries
+# Utility Functions
 # ------------------------------------------------------------------------------------------------------------------- #
+
+def sign(value):
+    """
+    Returns the sign of the input 'value'
+    """
+    return (float(value) > 0) - (float(value) < 0)
+
 
 def remove_empty_values(list_values):
     """
@@ -70,92 +74,48 @@ def remove_empty_values(list_values):
             break
     return list_values
 
-# ------------------------------------------------------------------------------------------------------------------- #
 
+def display_text(text_to_display):
+    """
+    Displays text mentioned in the string 'text_to_display'
+    Args:
+        text_to_display : Text to be displayed
+    Returns:
+        None
+    """
+    print("\n" + "# " + "-" * (12 + len(text_to_display)) + " #")
+    print("# " + "-" * 5 + " " + str(text_to_display) + " " + "-" * 5 + " #")
+    print("# " + "-" * (12 + len(text_to_display)) + " #" + "\n")
 
-# ------------------------------------------------------------------------------------------------------------------- #
-# Manual Setup - GUI Code
-# ------------------------------------------------------------------------------------------------------------------- #
-# Telescope Details
-telescope = eg.enterbox(msg='Enter The Name of the Telescope!', title='Name of the Telescope', default='HCT')
-telescope_df = pd.read_csv(list_telescopes, sep='\s+', comment='#').set_index('ShortName')
-
-if telescope in telescope_df.index.values:
-    (OBS_NAME, OBS_LONG, OBS_LAT, OBS_ALT, OBS_TIMEZONE, HORIZON, ZENITH) = telescope_df.loc[telescope].values
-else:
-    print("ERROR: Observatory Name '{0}' not found in the file '{1}'".format(telescope, list_telescopes))
-
-# List of Targets
-if os.path.exists(list_targets):
-    target_df = pd.read_csv(list_targets, sep='\s+', comment='#').set_index('Index')
-    target_df = target_df[target_df['ToPlot'].isin(['y', 'Y'])]
-    field_names = ['Object {0}'.format(idx) for idx in target_df.index.values]
-    field_values = [target_df.loc[idx, 'Name'] + ' ' + target_df.loc[idx, 'RA'] + ' ' + target_df.loc[idx, 'DEC']
-                    for idx in target_df.index.values]
-else:
-    field_names = ['Object {0}'.format(idx + 1) for idx in range(8)]
-    field_values = [''] * 8
-
-box_msg = 'Verify Name, RA, DEC of objects for Observation planning'
-box_title = 'Details of Objects'
-list_values = eg.multenterbox(msg=box_msg, title=box_title, fields=field_names, values=field_values)
-list_values = remove_empty_values(list_values)
-
-while len(list_values) == 0:
-    err_msg = box_msg + '\n\n ERROR: Aleast 1 Object required for Observation Planning!'
-    list_values = eg.multenterbox(msg=err_msg, title=box_title, fields=field_names, values=list_values)
-    list_values = remove_empty_values(list_values)
-
-# Plot Trajectories in UTC or Local Time?
-utc = eg.boolbox(msg='Plot Trajectories in UTC or Local Time?', title='Time Zone', choices=['UTC', 'Local Time'])
-
-# Current Date or Manually Entered Date?
-date_obs = str(Time(Time.now(), format='iso', out_subfmt='date'))
-setup_manual = eg.boolbox(msg='Manually Enter Date?', title='Manual or Current Date?', choices=['Manual', 'Current'])
-
-if setup_manual:
-    date_obs = eg.enterbox(msg='Enter The Date Of Observation!', title='Date Of Observation', default=date_obs)
 # ------------------------------------------------------------------------------------------------------------------- #
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
-# Declaring Object 'telescope'
-# ------------------------------------------------------------------------------------------------------------------- #
-telescope = ephem.Observer()
-telescope.pressure = 0
-telescope.lon = OBS_LONG
-telescope.lat = OBS_LAT
-telescope.elevation = OBS_ALT
-telescope.epoch = ephem.J2000
-
-time_midnight = (Time(date_obs) + 1 * u.day - abs(OBS_TIMEZONE) * u.hour).datetime
-telescope.date = time_midnight
-# ------------------------------------------------------------------------------------------------------------------- #
-
-
-# ------------------------------------------------------------------------------------------------------------------- #
-# Calculate Sunset, Sunrise and Twilight Times
+# Function to calculate Sunset, Sunrise and Twilight Times
 # ------------------------------------------------------------------------------------------------------------------- #
 
 def calculate_twilighttime(category='Sunset/Sunrise'):
     """
-    It will compute Rising and Setting times for the twilight time specified by 'twilight'.
+    Computes Rising and Setting times for the twilight time specified by 'category'.
     Args:
         category : Specifies which Twilight times have to be coomputed
     Returns:
         setting  : Setting time for the twilight
         rising   : Rising time for the twilight
     """
-    telescope.horizon = dict_twilights[category][0]
-    setting = telescope.previous_setting(ephem.Sun(), use_center=dict_twilights[category][1])
-    rising = telescope.next_rising(ephem.Sun(), use_center=dict_twilights[category][1])
-
-    return setting, rising
+    if category in dict_twilights:
+        telescope.horizon = dict_twilights[category][0]
+        setting = telescope.previous_setting(ephem.Sun(), use_center=dict_twilights[category][1])
+        rising = telescope.next_rising(ephem.Sun(), use_center=dict_twilights[category][1])
+        return setting, rising
+    else:
+        display_text("ERROR: Invalid Category Chosen '{0}'".format(category))
+        sys.exit(1)
 
 
 def calculate_moontime(time_midnight):
     """
-    It will compute Moonrise and Moonset times.
+    Computes Moonrise and Moonset at the time specified by 'time_midnight'.
     Args:
         time_midnight : Midnight time for the date on which Moonrise and Moonset is to be computed
     Returns:
@@ -182,38 +142,6 @@ def calculate_moontime(time_midnight):
 
     return rising, setting
 
-
-# Calculation Of Local MoonRise & MoonSet [Refraction Correction Of Moon = -0.34 Degrees]
-moon_rise, moon_set = calculate_moontime(time_midnight)
-
-# Calculation Of Local Sunset & Sunrise [Refractrion Correction for Sun = -0.34 Degrees]
-sun_set, sun_rise = calculate_twilighttime('Sunset/Sunrise')
-
-# Calculation Of Civil Twilight [Elevation Of Sun = -6 Degrees]
-dusk_civil, dawn_civil = calculate_twilighttime('Civil')
-
-# Calculation Of Nautical Twilight [Elevation Of Sun = -12 Degrees]
-dusk_nauti, dawn_nauti = calculate_twilighttime('Nautical')
-
-# Calculation Of Astronomical Twilight [Elevation Of Sun = -18 Degrees]
-dusk_astro, dawn_astro = calculate_twilighttime('Astronomical')
-
-twilighttimes = [Time(datetime.strptime(str(time).split('.')[0], '%Y/%m/%d %H:%M:%S'))
-                 for time in [sun_set, dusk_civil, dusk_nauti, dusk_astro, dawn_astro, 
-                              dawn_nauti, dawn_civil, sun_rise, moon_rise, moon_set]]
-
-(sunset, duskcivil, dusknauti, duskastro, dawnastro, dawnnauti,
-                               dawncivil, sunrise, moonrise, moonset) = twilighttimes
-# ------------------------------------------------------------------------------------------------------------------- #
-
-
-# ------------------------------------------------------------------------------------------------------------------- #
-# Determining Time Intervals
-# ------------------------------------------------------------------------------------------------------------------- #
-plot_duration = (sunrise.utc.datetime - sunset.utc.datetime).total_seconds() / 3600.
-utctime_intervals = sunset + np.linspace(time_offset, time_offset + plot_duration, 140) * u.hour
-localtime_intervals = utctime_intervals + OBS_TIMEZONE * u.hour
-moonsep_intervals = sunset + np.linspace(time_offset, time_offset + plot_duration, 7)[1:-1] * u.hour
 # ------------------------------------------------------------------------------------------------------------------- #
 
 
@@ -222,12 +150,12 @@ moonsep_intervals = sunset + np.linspace(time_offset, time_offset + plot_duratio
 # ------------------------------------------------------------------------------------------------------------------- #
 
 class ObjectToObs:
-    def __init__(self, object_name, object_ra, object_dec, plot_ax):
-        self.name = object_name
+    def __init__(self, name, ra, dec, plot_ax):
+        self.name = name
         self.object = ephem.FixedBody()
         self.object._epoch = ephem.J2000
-        self.object._ra = object_ra
-        self.object._dec = object_dec
+        self.object._ra = ra
+        self.object._dec = dec
         self.ax = plot_ax
         self.list_alt = []
 
@@ -235,8 +163,8 @@ class ObjectToObs:
         global telescope
         telescope.date = str(time_obs)
         self.object.compute(telescope)
-        object_alt = Angle(str(self.object.alt) + ' degrees').degree
-        return object_alt
+        altitude = Angle(str(self.object.alt) + ' degrees').degree
+        return altitude
 
     def get_moonsep(self, time_obs):
         global telescope
@@ -297,9 +225,6 @@ def plot_obsplan(ax_obj, utc=True):
         None
     """
     global sunset, sunrise, duskcivil, dawncivil, dusknauti, dawnnauti, duskastro, dawnastro
-
-    def sign(value):
-        return (float(value) > 0) - (float(value) < 0)
 
     # Print Observatory Details
     # ------------------------------------------------------------------------------------------------------------- #
@@ -392,9 +317,9 @@ def plot_obsplan(ax_obj, utc=True):
     # Set Plotting Tick Parameters
     # ------------------------------------------------------------------------------------------------------------- #
     ax_obj.xaxis.set_ticks_position('both')
-    ax_obj.xaxis.set_major_locator(HourLocator())
     ax_obj.yaxis.set_major_locator(FixedLocator(range(0, 91, 10)))
     ax_obj.yaxis.set_minor_locator(FixedLocator(range(0, 91, 2)))
+    ax_obj.xaxis.set_major_locator(HourLocator())
     ax_obj.xaxis.set_minor_locator(MinuteLocator(byminute=range(0, 60, 10)))
     ax_obj.xaxis.set_major_formatter(DateFormatter('%H:%M'))
     ax_obj.tick_params(axis='both', which='major', direction='in', width=1.6, length=8, labelsize=12)
@@ -448,6 +373,110 @@ def plot_obsplan(ax_obj, utc=True):
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
+# Manual Setup - GUI Code
+# ------------------------------------------------------------------------------------------------------------------- #
+# Target Details
+target_df = pd.read_csv(list_targets, sep='\s+', comment='#').set_index('Index')
+target_df = target_df[target_df['ToPlot'].isin(['y', 'Y'])]
+field_names = ['Object {0}'.format(idx) for idx in target_df.index.values]
+field_values = [target_df.loc[idx, 'Name'] + ' ' + target_df.loc[idx, 'RA'] + ' ' + target_df.loc[idx, 'DEC'] for idx
+                in target_df.index.values]
+
+# Telescope Details
+telescope = eg.enterbox(msg='Enter The Name of the Telescope!', title='Name of the Telescope', default='HCT')
+telescope_df = pd.read_csv(list_telescopes, sep='\s+', comment='#').set_index('ShortName')
+
+if telescope in telescope_df.index.values:
+    (OBS_NAME, OBS_LONG, OBS_LAT, OBS_ALT, OBS_TIMEZONE, HORIZON, ZENITH) = telescope_df.loc[telescope].values
+else:
+    print("ERROR: Observatory Name '{0}' not found in the file '{1}'".format(telescope, list_telescopes))
+
+# List of Targets
+if os.path.exists(list_targets):
+    target_df = pd.read_csv(list_targets, sep='\s+', comment='#').set_index('Index')
+    target_df = target_df[target_df['ToPlot'].isin(['y', 'Y'])]
+    field_names = ['Object {0}'.format(idx) for idx in target_df.index.values]
+    field_values = [target_df.loc[idx, 'Name'] + ' ' + target_df.loc[idx, 'RA'] + ' ' + target_df.loc[idx, 'DEC']
+                    for idx in target_df.index.values]
+else:
+    field_names = ['Object {0}'.format(idx + 1) for idx in range(8)]
+    field_values = [''] * 8
+
+box_msg = 'Verify Name, RA, DEC of objects for Observation planning'
+box_title = 'Details of Objects'
+list_values = eg.multenterbox(msg=box_msg, title=box_title, fields=field_names, values=field_values)
+list_values = remove_empty_values(list_values)
+
+while len(list_values) == 0:
+    err_msg = box_msg + '\n\n ERROR: Aleast 1 Object required for Observation Planning!'
+    list_values = eg.multenterbox(msg=err_msg, title=box_title, fields=field_names, values=list_values)
+    list_values = remove_empty_values(list_values)
+
+# Plot Trajectories in UTC or Local Time?
+utc = eg.boolbox(msg='Plot Trajectories in UTC or Local Time?', title='Time Zone', choices=['UTC', 'Local Time'])
+
+# Current Date or Manually Entered Date?
+date_obs = str(Time(Time.now(), format='iso', out_subfmt='date'))
+setup_manual = eg.boolbox(msg='Manually Enter Date?', title='Manual or Current Date?', choices=['Manual', 'Current'])
+
+if setup_manual:
+    date_obs = eg.enterbox(msg='Enter The Date Of Observation!', title='Date Of Observation', default=date_obs)
+# ------------------------------------------------------------------------------------------------------------------- #
+
+
+# ------------------------------------------------------------------------------------------------------------------- #
+# Declaring Object 'telescope'
+# ------------------------------------------------------------------------------------------------------------------- #
+telescope = ephem.Observer()
+telescope.pressure = 0
+telescope.lon = OBS_LONG
+telescope.lat = OBS_LAT
+telescope.elevation = OBS_ALT
+telescope.epoch = ephem.J2000
+
+time_midnight = (Time(date_obs) + 1 * u.day - abs(OBS_TIMEZONE) * u.hour).datetime
+telescope.date = time_midnight
+# ------------------------------------------------------------------------------------------------------------------- #
+
+
+# ------------------------------------------------------------------------------------------------------------------- #
+# Calculating of Twilight and MoonRise/Set Times
+# ------------------------------------------------------------------------------------------------------------------- #
+# Calculation Of Local MoonRise & MoonSet [Refraction Correction Of Moon = -0.34 Degrees]
+moon_rise, moon_set = calculate_moontime(time_midnight)
+
+# Calculation Of Local Sunset & Sunrise [Refractrion Correction for Sun = -0.34 Degrees]
+sun_set, sun_rise = calculate_twilighttime('Sunset/Sunrise')
+
+# Calculation Of Civil Twilight [Elevation Of Sun = -6 Degrees]
+dusk_civil, dawn_civil = calculate_twilighttime('Civil')
+
+# Calculation Of Nautical Twilight [Elevation Of Sun = -12 Degrees]
+dusk_nauti, dawn_nauti = calculate_twilighttime('Nautical')
+
+# Calculation Of Astronomical Twilight [Elevation Of Sun = -18 Degrees]
+dusk_astro, dawn_astro = calculate_twilighttime('Astronomical')
+
+twilighttimes = [Time(datetime.strptime(str(time).split('.')[0], '%Y/%m/%d %H:%M:%S'))
+                 for time in [sun_set, dusk_civil, dusk_nauti, dusk_astro, dawn_astro, 
+                              dawn_nauti, dawn_civil, sun_rise, moon_rise, moon_set]]
+
+(sunset, duskcivil, dusknauti, duskastro, dawnastro, dawnnauti,
+                               dawncivil, sunrise, moonrise, moonset) = twilighttimes
+# ------------------------------------------------------------------------------------------------------------------- #
+
+
+# ------------------------------------------------------------------------------------------------------------------- #
+# Determining Time Intervals
+# ------------------------------------------------------------------------------------------------------------------- #
+plot_duration = (sunrise.utc.datetime - sunset.utc.datetime).total_seconds() / 3600.
+utctime_intervals = sunset + np.linspace(time_offset, time_offset + plot_duration, 140) * u.hour
+localtime_intervals = utctime_intervals + OBS_TIMEZONE * u.hour
+moonsep_intervals = sunset + np.linspace(time_offset, time_offset + plot_duration, 7)[1:-1] * u.hour
+# ------------------------------------------------------------------------------------------------------------------- #
+
+
+# ------------------------------------------------------------------------------------------------------------------- #
 # Plots The Trajectories Of Objects To Be Observed
 # ------------------------------------------------------------------------------------------------------------------- #
 fig = plt.figure(figsize=(18, 13))
@@ -455,11 +484,11 @@ ax = fig.add_subplot(111)
 
 for index, value in enumerate(list_values):
     if len(value.split()) >= 3:
-        ObjectToObs(object_name=value.split()[-3], object_ra=value.split()[-2],
-                    object_dec=value.split()[-1], plot_ax=ax).plot_objtrack(utc=utc)
+        ObjectToObs(name=value.split()[-3], ra=value.split()[-2], dec=value.split()[-1],
+                    plot_ax=ax).plot_objtrack(utc=utc)
     elif len(value.split()) == 2:
-        ObjectToObs(object_name='Object ' + str(int(index) + 1), object_ra=value.split()[-2],
-                    object_dec=value.split()[-1], plot_ax=ax).plot_objtrack(utc=utc)
+        ObjectToObs(name='Object ' + str(int(index) + 1), ra=value.split()[-2], dec=value.split()[-1],
+                    plot_ax=ax).plot_objtrack(utc=utc)
     else:
         print("ERROR : Both RA & DEC for the Object '{}' need to be specified".format(str(int(index) + 1)))
         continue
