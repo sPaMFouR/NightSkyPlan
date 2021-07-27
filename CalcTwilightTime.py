@@ -115,7 +115,7 @@ def display_text(text_to_display):
 
 def calculate_twilighttime(category='Sunset/Sunrise'):
     """
-    It will compute Rising and Setting times for the twilight time specified by 'twilight'.
+    Computes Rising and Setting times for the twilight time specified by 'category'.
     Args:
         category : Specifies which Twilight times have to be coomputed
     Returns:
@@ -134,7 +134,7 @@ def calculate_twilighttime(category='Sunset/Sunrise'):
 
 def calculate_moontime(time_midnight):
     """
-    It will compute Moonrise and Moonset times.
+    Computes Moonrise and Moonset at the time specified by 'time_midnight'.
     Args:
         time_midnight : Midnight time for the date on which Moonrise and Moonset is to be computed
     Returns:
@@ -234,7 +234,6 @@ def get_twilighttimes(time_df, date_obs):
 localdate_duration = np.arange(Time(datestart), Time(dateend) + 1 * u.d, 1 * u.d)
 
 twilight_df = pd.DataFrame()
-plot = pd.DataFrame()
 for localdate in localdate_duration:
     twilight_df = get_twilighttimes(twilight_df, localdate)
 
