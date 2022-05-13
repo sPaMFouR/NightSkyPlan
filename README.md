@@ -23,7 +23,7 @@ Output File(s): `NightDuration_StartDATEToEndDATE.pdf`, `TwilightTimes_StartDATE
 
 'CalcTwilightTime.py' is a python script designed to aid in designing a proposal cycle with details about sunset, sunrise, twilight times, duration of night and moon phase.
 
-## 3) CalcMoonAnglePhase.py
+## 4) CalcMoonAnglePhase.py
 Required File(s): [`TelescopeList.dat`], [`DateList.dat(optional)`]<br />
 Output File(s): `MoonPhaseAngle.asc`<br />
 
