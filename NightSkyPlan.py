@@ -175,36 +175,24 @@ class ObjectToObs:
         angle_sep = int(Angle(str(angle_ephem) + ' degrees').degree)
         return angle_sep
 
-    def plot_objtrack(self, utc=True):
+    def plot_objtrack(self, utctime_intervals, utc=True):
         for time_obs in list(utctime_intervals.value):
             self.list_alt.append(self.get_altitude(str(time_obs)))
         if utc:
-            self.plot_in_utc()
+            self.plot_skyplan(utctime_intervals)
         else:
-            self.plot_in_local()
+            localtime_intervals = utctime_intervals + OBS_TIMEZONE * u.hour
+            self.plot_skyplan(localtime_intervals)
 
-    def plot_in_utc(self):
+    def plot_skyplan(self, time_intervals):
         global object_count
-        self.ax.plot(list(utctime_intervals.value), self.list_alt, c=colors[object_count],
-                     marker=markers[object_count], ls='-', lw=1, ms=7, alpha=0.5,
+        self.ax.plot(list(time_intervals.value), self.list_alt, c=colors[object_count % len(colors)],
+                     marker=markers[object_count % len(markers)], ls='-', lw=1, ms=8, alpha=0.5,
                      label='{0} [{1:}$^\circ$]'.format(self.name, self.get_moonsep(str(moonsep_intervals[0]))))
 
         # plot_intervals = [time for time in moonsep_intervals if int(self.get_altitude(str(time))) > 0]
         # for time_obs in plot_intervals:
         #     self.ax.text(time_obs.value, self.get_altitude(str(time_obs)) + 0.5, self.get_moonsep(str(time_obs)),
-        #                  fontsize=9, color='white', alpha=0.8)
-        object_count += 1
-
-    def plot_in_local(self):
-        global object_count
-        self.ax.plot(list(localtime_intervals.value), self.list_alt, color=colors[object_count], ls='-', lw=1, ms=7,
-                     marker=markers[object_count], alpha=0.5, label='{0} [{1:}$^\circ$]'.format(self.name,
-                     self.get_moonsep(str(moonsep_intervals[0]))))
-
-        # plot_intervals = [time for time in moonsep_intervals if int(self.get_altitude(str(time))) > 0]
-        # for time_obs in plot_intervals:
-        #     local_time = time_obs + OBS_TIMEZONE * u.hour
-        #     self.ax.text(local_time.value, self.get_altitude(str(time_obs)) + 0.5, self.get_moonsep(str(time_obs)),
         #                  fontsize=9, color='white', alpha=0.8)
         object_count += 1
 
@@ -247,7 +235,7 @@ def plot_obsplan(ax_obj, utc=True):
     display_text = text_name + text_lat + text_long + text_alt + '\n'
     # ------------------------------------------------------------------------------------------------------------- #
 
-    # Compute Time
+    # Compute Twilight and Sunset/Sunrise Times (in Local Time)
     # ------------------------------------------------------------------------------------------------------------- #
     currenttime = Time.now()
 
@@ -265,25 +253,25 @@ def plot_obsplan(ax_obj, utc=True):
 
     # Print Text In The Plot
     # ------------------------------------------------------------------------------------------------------------- #
-    ax_obj.text(sunset.value, 91, 'Sunset', rotation=50, c='navy', fontsize=9)
-    ax_obj.text(sunrise.value - timedelta(minutes=10), 91, 'Sunrise', rotation=+50, c='navy', fontsize=9)
-    ax_obj.text(duskcivil.value, 3, 'Civil', rotation=-90, c='navy', alpha=1, fontsize=9)
-    ax_obj.text(dawncivil.value, 3, 'Civil', rotation=-90, c='navy', alpha=1, fontsize=9)
-    ax_obj.text(dusknauti.value, 3, 'Nautical', rotation=-90, c='navy', alpha=1, fontsize=9)
-    ax_obj.text(dawnnauti.value, 3, 'Nautical', rotation=-90, c='navy', alpha=1, fontsize=9)
-    ax_obj.text(duskastro.value, 3, 'Astronomical', rotation=-90, c='navy', alpha=1, fontsize=9)
-    ax_obj.text(dawnastro.value, 3, 'Astronomical', rotation=-90, c='navy', alpha=1, fontsize=9)
+    ax_obj.text(sunset.value, 91, 'Sunset', rotation=50, c='navy', fontsize=10)
+    ax_obj.text(sunrise.value - timedelta(minutes=10), 91, 'Sunrise', rotation=+50, c='navy', fontsize=10)
+    ax_obj.text(duskcivil.value, 3, 'Civil', rotation=-90, c='navy', alpha=1, fontsize=10)
+    ax_obj.text(dawncivil.value, 3, 'Civil', rotation=-90, c='navy', alpha=1, fontsize=10)
+    ax_obj.text(dusknauti.value, 3, 'Nautical', rotation=-90, c='navy', alpha=1, fontsize=10)
+    ax_obj.text(dawnnauti.value, 3, 'Nautical', rotation=-90, c='navy', alpha=1, fontsize=10)
+    ax_obj.text(duskastro.value, 3, 'Astronomical', rotation=-90, c='navy', alpha=1, fontsize=10)
+    ax_obj.text(dawnastro.value, 3, 'Astronomical', rotation=-90, c='navy', alpha=1, fontsize=10)
 
     nightspan = dawnnauti.value - dusknauti.value
     midnight = dusknauti.value + nightspan / 2
-    printtime = datetime.strptime(str(currenttime).split('.')[0], '%Y-%m-%d %H:%M:%S')
+    # printtime = datetime.strptime(str(currenttime).split('.')[0], '%Y-%m-%d %H:%M:%S')
     printnightspan = 'Night Span = {0}'.format(str(nightspan))
     printmoonphase = 'Moon Phase = {0:.1f}%'.format(ephem.Moon(midnight).phase)
     printdate = 'Date of Observation : {0}'.format(date_obs)
 
     ax_obj.text(midnight - timedelta(minutes=25), HORIZON - 2, 'Telescope Horizon', c='navy', fontsize=9)
     ax_obj.text(midnight - timedelta(minutes=25), ZENITH + 1, 'Telescope Zenith', c='navy', fontsize=9)
-    ax_obj.text(midnight - timedelta(hours=2), 91, s=printnightspan + ', ' + printmoonphase, c='r', fontsize=12)
+    ax_obj.text(midnight - timedelta(hours=1), 91.5, s=printnightspan + '  ' + printmoonphase, c='r', fontsize=12)
 
     if sunset.value < currenttime.utc.datetime < sunrise.value:
         ax_obj.axvline(x=currenttime.value, ls='--', lw=1, color='red')
@@ -314,7 +302,7 @@ def plot_obsplan(ax_obj, utc=True):
     ax_obj.fill_between([dawnastro.value, dawnnauti.value], HORIZON + 0.5, ZENITH - 0.5, fc='royalblue', alpha=0.4)
     # ------------------------------------------------------------------------------------------------------------- #
 
-    # Set Plotting Tick Parameters
+    # Set Plot Tick Parameters
     # ------------------------------------------------------------------------------------------------------------- #
     ax_obj.xaxis.set_ticks_position('both')
     ax_obj.yaxis.set_major_locator(FixedLocator(range(0, 91, 10)))
@@ -322,11 +310,12 @@ def plot_obsplan(ax_obj, utc=True):
     ax_obj.xaxis.set_major_locator(HourLocator())
     ax_obj.xaxis.set_minor_locator(MinuteLocator(byminute=range(0, 60, 10)))
     ax_obj.xaxis.set_major_formatter(DateFormatter('%H:%M'))
+
     ax_obj.tick_params(axis='both', which='major', direction='in', width=1.6, length=8, labelsize=12)
     ax_obj.tick_params(axis='both', which='minor', direction='in', width=0.9, length=5, labelsize=12)
     # ------------------------------------------------------------------------------------------------------------- #
 
-    # Plot The Y-Axis On The RHS With Airmass
+    # Obtain the AIRMASS and Plot it on RHS of Y-Axis
     # ------------------------------------------------------------------------------------------------------------- #
     list_secz = []
     for altitude in ax_obj.get_yticks():
@@ -340,6 +329,7 @@ def plot_obsplan(ax_obj, utc=True):
     ax_twin.set_yticks(ax_obj.get_yticks())
     ax_twin.set_yticks(ax_obj.get_yticks(minor=True), minor=True)
     ax_twin.set_yticklabels(list_secz)
+
     ax_twin.tick_params(axis='both', which='major', direction='in', width=1.6, length=8, labelsize=12)
     ax_twin.tick_params(axis='both', which='minor', direction='in', width=0.9, length=5, labelsize=12)
     # ------------------------------------------------------------------------------------------------------------- #
@@ -375,13 +365,6 @@ def plot_obsplan(ax_obj, utc=True):
 # ------------------------------------------------------------------------------------------------------------------- #
 # Manual Setup - GUI Code
 # ------------------------------------------------------------------------------------------------------------------- #
-# Target Details
-target_df = pd.read_csv(list_targets, sep='\s+', comment='#').set_index('Index')
-target_df = target_df[target_df['ToPlot'].isin(['y', 'Y'])]
-field_names = ['Object {0}'.format(idx) for idx in target_df.index.values]
-field_values = [target_df.loc[idx, 'Name'] + ' ' + target_df.loc[idx, 'RA'] + ' ' + target_df.loc[idx, 'DEC'] for idx
-                in target_df.index.values]
-
 # Telescope Details
 telescope = eg.enterbox(msg='Enter The Name of the Telescope!', title='Name of the Telescope', default='HCT')
 telescope_df = pd.read_csv(list_telescopes, sep='\s+', comment='#').set_index('ShortName')
@@ -393,8 +376,8 @@ else:
 
 # List of Targets
 if os.path.exists(list_targets):
-    target_df = pd.read_csv(list_targets, sep='\s+', comment='#').set_index('Index')
-    target_df = target_df[target_df['ToPlot'].isin(['y', 'Y'])]
+    target_df = pd.read_csv(list_targets, sep='\s+', comment='#')
+    target_df = target_df[target_df['Plot'].isin(['y', 'Y'])]
     field_names = ['Object {0}'.format(idx) for idx in target_df.index.values]
     field_values = [target_df.loc[idx, 'Name'] + ' ' + target_df.loc[idx, 'RA'] + ' ' + target_df.loc[idx, 'DEC']
                     for idx in target_df.index.values]
@@ -470,8 +453,7 @@ twilighttimes = [Time(datetime.strptime(str(time).split('.')[0], '%Y/%m/%d %H:%M
 # Determining Time Intervals
 # ------------------------------------------------------------------------------------------------------------------- #
 plot_duration = (sunrise.utc.datetime - sunset.utc.datetime).total_seconds() / 3600.
-utctime_intervals = sunset + np.linspace(time_offset, time_offset + plot_duration, 140) * u.hour
-localtime_intervals = utctime_intervals + OBS_TIMEZONE * u.hour
+utc_intervals = sunset + np.linspace(time_offset, time_offset + plot_duration, 100) * u.hour
 moonsep_intervals = sunset + np.linspace(time_offset, time_offset + plot_duration, 7)[1:-1] * u.hour
 # ------------------------------------------------------------------------------------------------------------------- #
 
@@ -485,10 +467,10 @@ ax = fig.add_subplot(111)
 for index, value in enumerate(list_values):
     if len(value.split()) >= 3:
         ObjectToObs(name=value.split()[-3], ra=value.split()[-2], dec=value.split()[-1],
-                    plot_ax=ax).plot_objtrack(utc=utc)
+                    plot_ax=ax).plot_objtrack(utc_intervals, utc=utc)
     elif len(value.split()) == 2:
         ObjectToObs(name='Object ' + str(int(index) + 1), ra=value.split()[-2], dec=value.split()[-1],
-                    plot_ax=ax).plot_objtrack(utc=utc)
+                    plot_ax=ax).plot_objtrack(utc_intervals, utc=utc)
     else:
         print("ERROR : Both RA & DEC for the Object '{}' need to be specified".format(str(int(index) + 1)))
         continue
