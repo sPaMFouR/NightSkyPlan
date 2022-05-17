@@ -230,7 +230,7 @@ def plot_obsplan(ax_obj, utc=True):
     ax_obj.autoscale_view()
     fig.autofmt_xdate()
     fig.savefig('YearlyPlan_{0}To{1}.pdf'.format(datestart, dateend), format='pdf', dpi=2000, bbox_inches='tight')
-    # plt.show()
+    plt.show()
     plt.close(fig)
 
 # ------------------------------------------------------------------------------------------------------------------- #
