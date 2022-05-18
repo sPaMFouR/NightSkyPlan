@@ -33,46 +33,6 @@ DEC_keyword = 'DEC'
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
-# Manual Setup - GUI Code
-# ------------------------------------------------------------------------------------------------------------------- #
-# Choice of Input
-bool_choice = eg.boolbox(msg='Enter The Type of Input', title='Input Data', choices=['Date List', 'FITS Files'])
-
-if bool_choice:
-    datelist_df = pd.read_csv(list_dates, sep='\s+', comment='#')
-else:
-    ctext = eg.enterbox(msg='Enter The Common Text of FITS Files', title='Common Text', default='*.fits')
-
-# Telescope Details
-telescope = eg.enterbox(msg='Enter The Name of the Telescope', title='Name of the Telescope', default='DOT')
-telescope_df = pd.read_csv(list_telescopes, sep='\s+', comment='#').set_index('ShortName')
-
-if telescope in telescope_df.index.values:
-    (OBS_NAME, OBS_LONG, OBS_LAT, OBS_ALT, OBS_TIMEZONE, _, _) = telescope_df.loc[telescope].values
-else:
-    telescope = eg.multenterbox('Enter the Necessary Details of the Telescope', title='Details of the Telescope',
-                                fields=['Name', 'Longitude', 'Latitude', 'Altitude', 'TimeZone'],
-                                values=telescope_df.loc['DOT'].values)
-    (OBS_NAME, OBS_LONG, OBS_LAT, OBS_ALT, OBS_TIMEZONE) = telescope
-
-# Are Input Times in UTC or Local Time?
-utc = eg.boolbox(msg='Are Input Times in UTC or Local Time?', title='Input Times', choices=['UTC', 'Local Time'])
-# ------------------------------------------------------------------------------------------------------------------- #
-
-
-# ------------------------------------------------------------------------------------------------------------------- #
-# Declaring Object 'telescope'
-# ------------------------------------------------------------------------------------------------------------------- #
-telescope = ephem.Observer()
-telescope.pressure = 0
-telescope.lon = OBS_LONG
-telescope.lat = OBS_LAT
-telescope.elevation = OBS_ALT
-telescope.epoch = ephem.J2000
-# ------------------------------------------------------------------------------------------------------------------- #
-
-
-# ------------------------------------------------------------------------------------------------------------------- #
 # Functions to help compute Moon Phase and Moon Angle
 # ------------------------------------------------------------------------------------------------------------------- #
 
@@ -90,9 +50,15 @@ def get_timeradec(filename):
     hdulist = fits.open(filename)
     header = hdulist[0].header
 
-    time_obs = header[TIME_keyword]
-    ra = header[RA_keyword]
-    dec = header[DEC_keyword]
+    box_msg = 'Verify Header Keywords for Time, RA, DEC of Observation'
+    box_title = 'Details of Header Keywords'
+    field_names = ['TIME', 'RA', 'DEC']
+    field_values = [TIME_keyword, RA_keyword, DEC_keyword]
+    header_keywords = eg.multenterbox(msg=box_msg, title=box_title, fields=field_names, values=field_values)
+
+    time_obs = header[header_keywords[0]]
+    ra = header[header_keywords[1]]
+    dec = header[header_keywords[2]]
     
     return time_obs, ra, dec
 
@@ -156,6 +122,46 @@ def get_moonphaseandangle(time, ra, dec):
 
     return moon_sep, moon_phase, altitude, airmass, l, b
 
+# ------------------------------------------------------------------------------------------------------------------- #
+
+
+# ------------------------------------------------------------------------------------------------------------------- #
+# Manual Setup - GUI Code
+# ------------------------------------------------------------------------------------------------------------------- #
+# Choice of Input
+bool_choice = eg.boolbox(msg='Enter The Type of Input', title='Input Data', choices=['DateList.dat', 'FITS Files'])
+
+if bool_choice:
+    datelist_df = pd.read_csv(list_dates, sep='\s+', comment='#')
+else:
+    ctext = eg.enterbox(msg='Enter The Common Text of FITS Files', title='Common Text', default='*.fits')
+
+# Telescope Details
+telescope = eg.enterbox(msg='Enter The Name of the Telescope', title='Name of the Telescope', default='DOT')
+telescope_df = pd.read_csv(list_telescopes, sep='\s+', comment='#').set_index('ShortName')
+
+if telescope in telescope_df.index.values:
+    (OBS_NAME, OBS_LONG, OBS_LAT, OBS_ALT, OBS_TIMEZONE, _, _) = telescope_df.loc[telescope].values
+else:
+    telescope = eg.multenterbox('Enter the Necessary Details of the Telescope', title='Details of the Telescope',
+                                fields=['Name', 'Longitude', 'Latitude', 'Altitude', 'TimeZone'],
+                                values=telescope_df.loc['DOT'].values)
+    (OBS_NAME, OBS_LONG, OBS_LAT, OBS_ALT, OBS_TIMEZONE) = telescope
+
+# Are Input Times in UTC or Local Time?
+utc = eg.boolbox(msg='Are Input Times in UTC or Local Time?', title='Input Times', choices=['UTC', 'Local Time'])
+# ------------------------------------------------------------------------------------------------------------------- #
+
+
+# ------------------------------------------------------------------------------------------------------------------- #
+# Declaring Object 'telescope'
+# ------------------------------------------------------------------------------------------------------------------- #
+telescope = ephem.Observer()
+telescope.pressure = 0
+telescope.lon = OBS_LONG
+telescope.lat = OBS_LAT
+telescope.elevation = OBS_ALT
+telescope.epoch = ephem.J2000
 # ------------------------------------------------------------------------------------------------------------------- #
 
 
