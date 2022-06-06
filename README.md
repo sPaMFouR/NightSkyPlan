@@ -3,7 +3,7 @@
 [![Build Status](https://img.shields.io/badge/release-0.2-red)](https://github.com/sPaMFouR/NightSkyPlan)
 [![Python 3.9.5](https://img.shields.io/badge/python3.9.5-nightskyplan-green)](https://www.python.org/downloads/release/python-395/)
 
-The directory contains python scipts to aid with planning of night sky observations, planning for proposal cycles, designing a proposal cycle with details about the duration of night and length of the night etc, and also extracting information of moon phase and moon separation for observations of photometric standards. The directory currently hosts the following codes:
+The directory contains python scripts to aid with the planning of night sky observations, planning for proposal cycles, allocating night for a proposal cycle with details about the duration of night, length of the twilight night, moon phase etc, and also extracting information of moon phase and moon separation for observations of photometric standards. The directory currently hosts the following codes:
 
 ## 1) NightSkyPlan.py
 Required File(s): [`TelescopeList.dat`], [`TargetList.dat(optional)`]<br />
