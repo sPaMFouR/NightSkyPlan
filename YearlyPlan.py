@@ -13,14 +13,13 @@ import numpy as np
 import pandas as pd
 import easygui as eg
 import astropy.units as u
-from astropy.time import Time
 from datetime import datetime
 from astropy.coordinates import Angle
+from astropy.time import Time, TimeDelta
 
 from matplotlib import pyplot as plt
 from matplotlib.ticker import FixedLocator
 from matplotlib.dates import DateFormatter, MonthLocator
-
 from pandas.plotting import register_matplotlib_converters
 register_matplotlib_converters()
 
@@ -159,7 +158,7 @@ def plot_obsplan(ax_obj, utc=True):
     if not sign(long_deg):
         text_ew = 'W'
 
-    degree_sign = '$^\circ$'
+    degree_sign = r'$^\circ$'
     text_name = OBS_NAME + ' [+' + str(OBS_TIMEZONE) + 'h]\n'
     text_lat = 'Latitude : ' + lat_deg + degree_sign + text_ns
     text_long = ', Longitude : ' + long_deg + degree_sign + text_ew
@@ -241,7 +240,7 @@ def plot_obsplan(ax_obj, utc=True):
 # ------------------------------------------------------------------------------------------------------------------- #
 # Telescope Details
 telescope = eg.enterbox(msg='Enter The Name of the Telescope!', title='Name of the Telescope', default='HCT')
-telescope_df = pd.read_csv(list_telescopes, sep='\s+', comment='#').set_index('ShortName')
+telescope_df = pd.read_csv(list_telescopes, sep=r'\s+', comment='#').set_index('ShortName')
 
 if telescope in telescope_df.index.values:
     (OBS_NAME, OBS_LONG, OBS_LAT, OBS_ALT, OBS_TIMEZONE, HORIZON, ZENITH) = telescope_df.loc[telescope].values
@@ -250,7 +249,7 @@ else:
 
 # List of Targets
 if os.path.exists(list_targets):
-    target_df = pd.read_csv(list_targets, sep='\s+', comment='#')
+    target_df = pd.read_csv(list_targets, sep=r'\s+', comment='#')
     target_df = target_df[target_df['Plot'].isin(['y', 'Y'])]
     field_names = ['Object {0}'.format(idx) for idx in target_df.index.values]
     field_values = [target_df.loc[idx, 'Name'] + ' ' + target_df.loc[idx, 'RA'] + ' ' + target_df.loc[idx, 'DEC']

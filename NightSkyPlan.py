@@ -14,9 +14,9 @@ import numpy as np
 import pandas as pd
 import easygui as eg
 import astropy.units as u
-from astropy.time import Time
+from datetime import datetime
 from astropy.coordinates import Angle
-from datetime import datetime, timedelta
+from astropy.time import Time, TimeDelta
 
 from matplotlib import pyplot as plt
 from matplotlib.ticker import FixedLocator
@@ -254,7 +254,7 @@ def plot_obsplan(ax_obj, utc=True):
     # Print Text In The Plot
     # ------------------------------------------------------------------------------------------------------------- #
     ax_obj.text(sunset.value, 91, 'Sunset', rotation=50, c='navy', fontsize=10)
-    ax_obj.text(sunrise.value - timedelta(minutes=10), 91, 'Sunrise', rotation=+50, c='navy', fontsize=10)
+    ax_obj.text(sunrise.value - TimeDelta(10, format='minutes'), 91, 'Sunrise', rotation=+50, c='navy', fontsize=10)
     ax_obj.text(duskcivil.value, 3, 'Civil', rotation=-90, c='navy', alpha=1, fontsize=10)
     ax_obj.text(dawncivil.value, 3, 'Civil', rotation=-90, c='navy', alpha=1, fontsize=10)
     ax_obj.text(dusknauti.value, 3, 'Nautical', rotation=-90, c='navy', alpha=1, fontsize=10)
@@ -269,9 +269,9 @@ def plot_obsplan(ax_obj, utc=True):
     printmoonphase = 'Moon Phase = {0:.1f}%'.format(ephem.Moon(midnight).phase)
     printdate = 'Date of Observation : {0}'.format(date_obs)
 
-    ax_obj.text(midnight - timedelta(minutes=25), HORIZON - 2, 'Telescope Horizon', c='navy', fontsize=9)
-    ax_obj.text(midnight - timedelta(minutes=25), ZENITH + 1, 'Telescope Zenith', c='navy', fontsize=9)
-    ax_obj.text(midnight - timedelta(hours=1), 91.5, s=printnightspan + '  ' + printmoonphase, c='r', fontsize=12)
+    ax_obj.text(midnight - TimeDelta(25, format='minutes'), HORIZON - 2, 'Telescope Horizon', c='navy', fontsize=9)
+    ax_obj.text(midnight - TimeDelta(25, format='minutes'), ZENITH + 1, 'Telescope Zenith', c='navy', fontsize=9)
+    ax_obj.text(midnight - TimeDelta(1, format='hours'), 91.5, s=printnightspan + '  ' + printmoonphase, c='r', fontsize=12)
 
     if sunset.value < currenttime.utc.datetime < sunrise.value:
         ax_obj.axvline(x=currenttime.value, ls='--', lw=1, color='red')
@@ -367,7 +367,7 @@ def plot_obsplan(ax_obj, utc=True):
 # ------------------------------------------------------------------------------------------------------------------- #
 # Telescope Details
 telescope = eg.enterbox(msg='Enter The Name of the Telescope!', title='Name of the Telescope', default='HCT')
-telescope_df = pd.read_csv(list_telescopes, sep='\s+', comment='#').set_index('ShortName')
+telescope_df = pd.read_csv(list_telescopes, sep=r'\s+', comment='#').set_index('ShortName')
 
 if telescope in telescope_df.index.values:
     (OBS_NAME, OBS_LONG, OBS_LAT, OBS_ALT, OBS_TIMEZONE, HORIZON, ZENITH) = telescope_df.loc[telescope].values
@@ -376,7 +376,7 @@ else:
 
 # List of Targets
 if os.path.exists(list_targets):
-    target_df = pd.read_csv(list_targets, sep='\s+', comment='#')
+    target_df = pd.read_csv(list_targets, sep=r'\s+', comment='#')
     target_df = target_df[target_df['Plot'].isin(['y', 'Y'])]
     field_names = ['Object {0}'.format(idx) for idx in target_df.index.values]
     field_values = [target_df.loc[idx, 'Name'] + ' ' + target_df.loc[idx, 'RA'] + ' ' + target_df.loc[idx, 'DEC']
