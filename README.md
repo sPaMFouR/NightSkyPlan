@@ -46,3 +46,27 @@ Requirements:
 - easygui
 - datetime
 - matplotlib
+
+## Streamlit observing planner
+
+The new interactive planner lives in `nightskyplan_app/app.py` and uses the small `nightskyplan` package for target parsing, ephemerides, constraints, plotting, and baseline scheduling.
+
+Install the Streamlit app dependencies:
+
+```bash
+python3 -m pip install -r nightskyplan_app/requirements.txt
+```
+
+Run the app from the repository root:
+
+```bash
+streamlit run nightskyplan_app/app.py
+```
+
+Target uploads should be CSV files with these columns:
+
+```text
+name,ra,dec,exposure_min,priority
+```
+
+RA and Dec can be sexagesimal (`12:34:56.7`, `-12:34:56`) or decimal degrees. The app shows visibility, hour angle, Moon separation, a greedy observing schedule, and downloadable schedule/visibility tables.
