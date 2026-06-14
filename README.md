@@ -63,6 +63,12 @@ Run the app from the repository root:
 streamlit run nightskyplan_app/app.py
 ```
 
+## Portfolio landing page
+
+A modern static portfolio landing page for the planner lives in `nightskyplan_web/index.html`.
+It is self-contained and can be opened directly in a browser; no JavaScript build step is required.
+The page links to the local Streamlit planner at `http://localhost:8501`.
+
 Target uploads should be CSV files with these columns:
 
 ```text

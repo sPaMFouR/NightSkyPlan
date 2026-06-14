@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta
+      name="description"
+      content="NightSkyPlan portfolio landing page for a modern night sky planning interface."
+    >
+    <title>NightSkyPlan | Observing Interface Portfolio</title>
+    <link rel="preload" href="assets/observatory-hero.png" as="image">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <canvas id="starfield" aria-hidden="true"></canvas>
+    <header class="hero" id="top">
+      <img
+        class="hero__image"
+        src="assets/observatory-hero.png"
+        alt="High altitude observatory deck under a clear Milky Way sky"
+      >
+      <div class="hero__shade" aria-hidden="true"></div>
+
+      <nav class="nav" aria-label="Primary navigation">
+        <a class="nav__brand" href="#top" aria-label="NightSkyPlan home">
+          <span class="nav__signal" aria-hidden="true"></span>
+          NightSkyPlan
+        </a>
+        <div class="nav__links">
+          <a href="#case">Case</a>
+          <a href="#prototype">Prototype</a>
+          <a href="#systems">System</a>
+        </div>
+        <a class="nav__action" href="http://localhost:8501" rel="noopener">Open planner</a>
+      </nav>
+
+      <section class="hero__content" aria-labelledby="hero-title">
+        <p class="eyebrow">UI/UX portfolio for precision astronomy</p>
+        <h1 id="hero-title">NightSkyPlan</h1>
+        <p class="hero__lede">
+          A visual redesign of an observing planner that turns target lists,
+          twilight windows, moon risk, and scheduling logic into a calm control
+          room for the night.
+        </p>
+        <div class="hero__actions" aria-label="Page actions">
+          <a class="button button--primary" href="#prototype">
+            Explore prototype
+            <span class="button__arrow" aria-hidden="true"></span>
+          </a>
+          <a class="button button--secondary" href="../nightskyplan_app/app.py">
+            View Streamlit entry
+          </a>
+        </div>
+      </section>
+
+      <aside class="mission-panel" aria-label="Night plan preview">
+        <div class="mission-panel__top">
+          <p>Hanle, India</p>
+          <span>2026-06-14</span>
+        </div>
+        <div class="sky-dial" aria-hidden="true">
+          <span class="sky-dial__ring sky-dial__ring--outer"></span>
+          <span class="sky-dial__ring sky-dial__ring--inner"></span>
+          <span class="sky-dial__target sky-dial__target--one"></span>
+          <span class="sky-dial__target sky-dial__target--two"></span>
+          <span class="sky-dial__target sky-dial__target--three"></span>
+        </div>
+        <dl class="mission-panel__metrics">
+          <div>
+            <dt>Dark window</dt>
+            <dd>8h 42m</dd>
+          </div>
+          <div>
+            <dt>Targets</dt>
+            <dd>14</dd>
+          </div>
+          <div>
+            <dt>Mean X</dt>
+            <dd>1.28</dd>
+          </div>
+        </dl>
+      </aside>
+    </header>
+
+    <main>
+      <section class="intro-band" aria-label="Planner summary">
+        <p>From desktop plotting scripts to a browser-native observing flow.</p>
+        <div class="intro-band__items" aria-label="Core planner dimensions">
+          <span>Altitude</span>
+          <span>Airmass</span>
+          <span>Moon separation</span>
+          <span>Hour angle</span>
+          <span>Schedule fit</span>
+        </div>
+      </section>
+
+      <section class="case-section section-pad" id="case">
+        <div class="section-kicker">Case study</div>
+        <div class="case-grid">
+          <div class="case-copy reveal">
+            <h2>Make the whole night legible before the first exposure.</h2>
+            <p>
+              The original NightSkyPlan tools calculate altitude, airmass,
+              twilight, moon phase, moon separation, and long-range observing
+              windows. The Streamlit branch brings those calculations into a
+              browsable planner with uploadable targets and a baseline greedy
+              scheduler.
+            </p>
+          </div>
+          <div class="case-stat reveal">
+            <span>01</span>
+            <strong>Target triage</strong>
+            <p>Parse CSV targets, priorities, exposure lengths, RA, and Dec.</p>
+          </div>
+          <div class="case-stat reveal">
+            <span>02</span>
+            <strong>Constraint clarity</strong>
+            <p>Show why a target fails twilight, altitude, moon, or HA limits.</p>
+          </div>
+          <div class="case-stat reveal">
+            <span>03</span>
+            <strong>Schedule confidence</strong>
+            <p>Convert valid windows into an ordered night plan and diagnostics.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="prototype section-pad" id="prototype">
+        <div class="section-kicker">Interactive prototype</div>
+        <div class="prototype__layout">
+          <div class="prototype__copy reveal">
+            <h2>A tactile planning console for changing sky conditions.</h2>
+            <p>
+              Inspired by the dense observability surfaces of airmass.org, this
+              landing prototype keeps the controls sparse and the feedback
+              immediate: target quality, moon risk, and schedule load move as
+              observers tune their constraints.
+            </p>
+          </div>
+
+          <div class="console reveal" aria-label="Interactive planning preview">
+            <div class="console__header">
+              <div>
+                <p>Night run</p>
+                <h3>SN follow-up sequence</h3>
+              </div>
+              <span id="quality-pill" class="quality-pill">Stable</span>
+            </div>
+
+            <div class="console__controls">
+              <label>
+                <span>Airmass ceiling</span>
+                <output id="airmass-value" for="airmass">2.2</output>
+                <input id="airmass" type="range" min="1.2" max="3.8" value="2.2" step="0.1">
+              </label>
+              <label>
+                <span>Moon separation</span>
+                <output id="moon-value" for="moon">42 deg</output>
+                <input id="moon" type="range" min="10" max="120" value="42" step="1">
+              </label>
+              <label>
+                <span>HA limit</span>
+                <output id="ha-value" for="ha">5.0 h</output>
+                <input id="ha" type="range" min="1" max="8" value="5" step="0.5">
+              </label>
+            </div>
+
+            <div class="chart" aria-label="Visibility chart preview">
+              <div class="chart__axis">
+                <span>18:00</span>
+                <span>00:00</span>
+                <span>06:00</span>
+              </div>
+              <div class="chart__row" data-target="SN2022jli">
+                <span>SN2022jli</span>
+                <i class="chart__bar chart__bar--one"></i>
+              </div>
+              <div class="chart__row" data-target="SN2020tlf">
+                <span>SN2020tlf</span>
+                <i class="chart__bar chart__bar--two"></i>
+              </div>
+              <div class="chart__row" data-target="SN2018zd">
+                <span>SN2018zd</span>
+                <i class="chart__bar chart__bar--three"></i>
+              </div>
+            </div>
+
+            <div class="console__footer">
+              <div>
+                <span id="score">86</span>
+                <p>Plan score</p>
+              </div>
+              <div>
+                <span id="scheduled">11</span>
+                <p>Scheduled</p>
+              </div>
+              <div>
+                <span id="risk">Low</span>
+                <p>Moon risk</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="system-section section-pad" id="systems">
+        <div class="section-kicker">Interface system</div>
+        <div class="system-grid">
+          <article class="system-card reveal">
+            <span class="system-card__index">A</span>
+            <h3>Observability as rhythm</h3>
+            <p>
+              Daily and annual visibility become scan-friendly timelines with
+              twilight as context, not decoration.
+            </p>
+          </article>
+          <article class="system-card reveal">
+            <span class="system-card__index">B</span>
+            <h3>Constraints with reasons</h3>
+            <p>
+              Every failed target keeps a clear diagnostic trail so observers can
+              adjust limits without guessing.
+            </p>
+          </article>
+          <article class="system-card reveal">
+            <span class="system-card__index">C</span>
+            <h3>Science-grade calm</h3>
+            <p>
+              The design stays dark-adapted, high contrast, and restrained while
+              preserving enough drama for a portfolio-grade first impression.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section class="handoff section-pad" aria-label="Designer handoff">
+        <div class="handoff__visual reveal" aria-hidden="true">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <div class="handoff__copy reveal">
+          <div class="section-kicker">Handoff</div>
+          <h2>Built to sit beside the real planner, not replace it.</h2>
+          <p>
+            This portfolio landing page introduces the NightSkyPlan story, while
+            the Streamlit app remains the calculation workspace for actual
+            target uploads, charts, schedules, diagnostics, and CSV exports.
+          </p>
+          <a class="button button--primary" href="http://localhost:8501">
+            Launch local planner
+            <span class="button__arrow" aria-hidden="true"></span>
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <a href="#top">NightSkyPlan</a>
+      <p>Portfolio concept for observability, airmass, and scheduling UX.</p>
+    </footer>
+
+    <script src="script.js" defer></script>
+  </body>
+</html>
