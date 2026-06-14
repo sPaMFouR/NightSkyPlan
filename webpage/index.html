@@ -28,10 +28,11 @@
         </a>
         <div class="nav__links">
           <a href="#case">Case</a>
-          <a href="#prototype">Prototype</a>
+          <a href="#planner">Planner</a>
           <a href="#systems">System</a>
+          <a href="#runbook">Run</a>
         </div>
-        <a class="nav__action" href="http://localhost:8501" rel="noopener">Open planner</a>
+        <a class="nav__action" href="#runbook">Run application</a>
       </nav>
 
       <section class="hero__content" aria-labelledby="hero-title">
@@ -43,12 +44,12 @@
           room for the night.
         </p>
         <div class="hero__actions" aria-label="Page actions">
-          <a class="button button--primary" href="#prototype">
-            Explore prototype
+          <a class="button button--primary" href="#planner">
+            Plan the night
             <span class="button__arrow" aria-hidden="true"></span>
           </a>
-          <a class="button button--secondary" href="../application/app.py">
-            View Streamlit entry
+          <a class="button button--secondary" href="#runbook">
+            Run application
           </a>
         </div>
       </section>
@@ -58,12 +59,12 @@
           <p>Hanle, India</p>
           <span>2026-06-14</span>
         </div>
-        <div class="sky-dial" aria-hidden="true">
-          <span class="sky-dial__ring sky-dial__ring--outer"></span>
-          <span class="sky-dial__ring sky-dial__ring--inner"></span>
-          <span class="sky-dial__target sky-dial__target--one"></span>
-          <span class="sky-dial__target sky-dial__target--two"></span>
-          <span class="sky-dial__target sky-dial__target--three"></span>
+        <div class="earth-card" aria-label="Observatory location on illuminated Earth">
+          <canvas id="earth-globe" width="360" height="360"></canvas>
+          <div class="earth-card__meta">
+            <span>Observatory lock</span>
+            <strong>32.78 N, 78.96 E</strong>
+          </div>
         </div>
         <dl class="mission-panel__metrics">
           <div>
@@ -125,20 +126,20 @@
         </div>
       </section>
 
-      <section class="prototype section-pad" id="prototype">
-        <div class="section-kicker">Interactive prototype</div>
-        <div class="prototype__layout">
-          <div class="prototype__copy reveal">
+      <section class="planner section-pad" id="planner">
+        <div class="section-kicker">Planner workspace</div>
+        <div class="planner__layout">
+          <div class="planner__copy reveal">
             <h2>A tactile planning console for changing sky conditions.</h2>
             <p>
               Inspired by the dense observability surfaces of airmass.org, this
-              landing prototype keeps the controls sparse and the feedback
+              web experience keeps the controls sparse and the feedback
               immediate: target quality, moon risk, and schedule load move as
-              observers tune their constraints.
+              observers tune constraints.
             </p>
           </div>
 
-          <div class="console reveal" aria-label="Interactive planning preview">
+          <div class="console reveal" aria-label="Interactive planning console">
             <div class="console__header">
               <div>
                 <p>Night run</p>
@@ -243,21 +244,24 @@
           <div class="section-kicker">Handoff</div>
           <h2>Built to sit beside the real planner, not replace it.</h2>
           <p>
-            This portfolio landing page introduces the NightSkyPlan story, while
-            the Streamlit app remains the calculation workspace for actual
-            target uploads, charts, schedules, diagnostics, and CSV exports.
+            The webpage introduces the observing workflow, while the Streamlit
+            application remains the calculation workspace for actual target
+            uploads, charts, schedules, diagnostics, and CSV exports.
           </p>
-          <a class="button button--primary" href="http://localhost:8501">
-            Launch local planner
-            <span class="button__arrow" aria-hidden="true"></span>
-          </a>
+          <div class="run-command" id="runbook">
+            <code>streamlit run application/app.py</code>
+            <button class="button button--primary" id="copy-command" type="button">
+              Copy command
+            </button>
+          </div>
+          <p class="copy-status" id="copy-status" role="status" aria-live="polite"></p>
         </div>
       </section>
     </main>
 
     <footer class="footer">
       <a href="#top">NightSkyPlan</a>
-      <p>Portfolio concept for observability, airmass, and scheduling UX.</p>
+      <p>Web experience for observability, airmass, and scheduling UX.</p>
     </footer>
 
     <script src="script.js" defer></script>

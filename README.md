@@ -1,11 +1,11 @@
 # NightSkyPlan
 
 [![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![Tests](https://github.com/sPaMFouR/NightSkyPlan/actions/workflows/tests.yml/badge.svg?branch=web-dev)](https://github.com/sPaMFouR/NightSkyPlan/actions/workflows/tests.yml)
 [![Streamlit app](https://img.shields.io/badge/app-Streamlit-FF4B4B?logo=streamlit&logoColor=white)](https://streamlit.io/)
 [![Plotly charts](https://img.shields.io/badge/charts-Plotly-3F4F75?logo=plotly&logoColor=white)](https://plotly.com/python/)
-[![Astropy](https://img.shields.io/badge/astronomy-Astropy-F37524)](https://www.astropy.org/)
 [![Branch](https://img.shields.io/badge/branch-web--dev-69E1FF)](https://github.com/sPaMFouR/NightSkyPlan/tree/web-dev)
-[![License](https://img.shields.io/github/license/sPaMFouR/NightSkyPlan)](https://github.com/sPaMFouR/NightSkyPlan/blob/master/LICENSE.txt)
+[![License: GPL v3](https://img.shields.io/badge/license-GPLv3-2F81F7)](LICENSE.txt)
 
 NightSkyPlan helps plan ground-based night sky observations. It combines the
 original observing scripts with a reusable Python planning package, a Streamlit
@@ -58,7 +58,8 @@ tables.
 
 The modern static landing page lives in `webpage/index.html`. It is a
 self-contained portfolio page with a project-local hero image, responsive CSS,
-native canvas motion, and an interactive planning-console preview.
+native canvas motion, an illuminated observatory globe, and an interactive
+planner console.
 
 Open it directly in a browser:
 

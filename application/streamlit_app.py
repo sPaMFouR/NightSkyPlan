@@ -1,4 +1,4 @@
-"""Compatibility wrapper for the original prototype entrypoint."""
+"""Compatibility wrapper for the Streamlit application entrypoint."""
 
 from application.app import main
 

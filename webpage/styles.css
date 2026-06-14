@@ -28,9 +28,27 @@ html {
 
 body {
   margin: 0;
-  background: var(--ink);
+  background:
+    linear-gradient(180deg, rgba(105, 225, 255, 0.05), transparent 520px),
+    var(--ink);
   color: var(--paper);
   overflow-x: hidden;
+}
+
+body::before {
+  background:
+    linear-gradient(110deg, transparent 0%, rgba(105, 225, 255, 0.12) 34%, transparent 58%),
+    linear-gradient(250deg, transparent 0%, rgba(255, 108, 95, 0.09) 42%, transparent 66%);
+  content: "";
+  filter: blur(34px);
+  height: 58svh;
+  left: 0;
+  opacity: 0.65;
+  pointer-events: none;
+  position: fixed;
+  right: 0;
+  top: -18svh;
+  z-index: 1;
 }
 
 body::selection {
@@ -61,6 +79,21 @@ a {
   min-height: 92svh;
   overflow: hidden;
   position: relative;
+  z-index: 3;
+}
+
+.hero::before {
+  background:
+    linear-gradient(90deg, transparent, rgba(105, 225, 255, 0.28), transparent),
+    linear-gradient(90deg, transparent, rgba(242, 177, 95, 0.22), transparent);
+  content: "";
+  height: 1px;
+  left: 8%;
+  opacity: 0.8;
+  position: absolute;
+  right: 8%;
+  top: 96px;
+  z-index: 3;
 }
 
 .hero__image {
@@ -205,8 +238,11 @@ h1 {
 
 .button {
   align-items: center;
+  border: 0;
   border-radius: 999px;
+  cursor: pointer;
   display: inline-flex;
+  font: inherit;
   font-size: 0.92rem;
   font-weight: 800;
   gap: 10px;
@@ -242,11 +278,16 @@ h1 {
 
 .mission-panel {
   backdrop-filter: blur(22px);
-  background: var(--panel);
+  background:
+    linear-gradient(180deg, rgba(105, 225, 255, 0.08), transparent 42%),
+    var(--panel);
   border: 1px solid rgba(245, 242, 234, 0.17);
   border-radius: 8px;
   bottom: 70px;
-  box-shadow: var(--shadow);
+  box-shadow:
+    0 0 0 1px rgba(105, 225, 255, 0.08),
+    0 0 58px rgba(105, 225, 255, 0.12),
+    var(--shadow);
   display: grid;
   gap: 24px;
   padding: 18px;
@@ -272,74 +313,68 @@ h1 {
   margin: 0;
 }
 
-.sky-dial {
+.earth-card {
   aspect-ratio: 1;
-  background:
-    linear-gradient(rgba(245, 242, 234, 0.12) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(245, 242, 234, 0.1) 1px, transparent 1px),
-    rgba(255, 255, 255, 0.03);
-  background-size: 42px 42px;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(245, 242, 234, 0.15);
   border-radius: 50%;
+  display: grid;
+  isolation: isolate;
   margin: 0 auto;
-  max-width: 185px;
+  max-width: 205px;
   overflow: hidden;
   position: relative;
   width: 100%;
 }
 
-.sky-dial::before,
-.sky-dial::after,
-.sky-dial__ring {
-  border: 1px solid rgba(105, 225, 255, 0.35);
+.earth-card::before {
+  background:
+    linear-gradient(rgba(245, 242, 234, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(245, 242, 234, 0.08) 1px, transparent 1px);
+  background-size: 38px 38px;
   border-radius: 50%;
   content: "";
-  inset: 20px;
+  inset: 0;
+  opacity: 0.32;
   position: absolute;
+  z-index: -1;
 }
 
-.sky-dial::after {
-  border-color: rgba(242, 177, 95, 0.28);
-  inset: 50px;
+.earth-card canvas {
+  display: block;
+  height: 100%;
+  width: 100%;
 }
 
-.sky-dial__ring--outer {
-  animation: spin 18s linear infinite;
-  border-bottom-color: transparent;
-  inset: 10px;
-}
-
-.sky-dial__ring--inner {
-  animation: spin 11s linear infinite reverse;
-  border-left-color: transparent;
-  inset: 68px;
-}
-
-.sky-dial__target {
-  background: var(--paper);
+.earth-card__meta {
+  background: rgba(5, 6, 9, 0.72);
+  border: 1px solid rgba(245, 242, 234, 0.12);
   border-radius: 999px;
-  box-shadow: 0 0 18px currentColor;
-  height: 7px;
+  bottom: 13px;
+  box-shadow: 0 0 22px rgba(153, 244, 199, 0.12);
+  left: 50%;
+  min-width: 160px;
+  padding: 8px 12px;
   position: absolute;
-  width: 7px;
+  text-align: center;
+  transform: translateX(-50%);
 }
 
-.sky-dial__target--one {
-  color: var(--cyan);
-  left: 32%;
-  top: 22%;
+.earth-card__meta span,
+.earth-card__meta strong {
+  display: block;
 }
 
-.sky-dial__target--two {
-  color: var(--amber);
-  right: 26%;
-  top: 41%;
+.earth-card__meta span {
+  color: var(--muted);
+  font-size: 0.62rem;
 }
 
-.sky-dial__target--three {
-  bottom: 28%;
+.earth-card__meta strong {
   color: var(--mint);
-  left: 46%;
+  font-size: 0.74rem;
+  margin-top: 2px;
 }
 
 .mission-panel__metrics {
@@ -399,6 +434,12 @@ h1 {
   padding: 112px max(24px, calc((100vw - 1200px) / 2 + 24px));
 }
 
+main,
+.footer {
+  position: relative;
+  z-index: 3;
+}
+
 .case-section,
 .system-section {
   background: var(--ink);
@@ -415,7 +456,7 @@ h1 {
 }
 
 .case-copy h2,
-.prototype__copy h2,
+.planner__copy h2,
 .handoff__copy h2 {
   font-family: Georgia, "Times New Roman", serif;
   font-size: 3.4rem;
@@ -426,7 +467,7 @@ h1 {
 }
 
 .case-copy p,
-.prototype__copy p,
+.planner__copy p,
 .system-card p,
 .handoff__copy p {
   color: rgba(245, 242, 234, 0.7);
@@ -436,7 +477,9 @@ h1 {
 
 .case-stat,
 .system-card {
-  background: rgba(245, 242, 234, 0.06);
+  background:
+    linear-gradient(180deg, rgba(245, 242, 234, 0.07), rgba(245, 242, 234, 0.035)),
+    rgba(245, 242, 234, 0.04);
   border: 1px solid rgba(245, 242, 234, 0.12);
   border-radius: 8px;
   min-height: 245px;
@@ -465,29 +508,47 @@ h1 {
   margin: 0;
 }
 
-.prototype {
+.planner {
   background:
-    linear-gradient(180deg, rgba(242, 177, 95, 0.1), rgba(5, 6, 9, 0)),
+    linear-gradient(180deg, rgba(105, 225, 255, 0.08), rgba(5, 6, 9, 0)),
+    linear-gradient(90deg, rgba(164, 147, 255, 0.08), transparent 42%, rgba(242, 177, 95, 0.08)),
     var(--ink-2);
+  position: relative;
 }
 
-.prototype__layout {
+.planner::before {
+  background:
+    linear-gradient(90deg, transparent, rgba(153, 244, 199, 0.24), transparent);
+  content: "";
+  height: 1px;
+  left: max(24px, calc((100vw - 1200px) / 2 + 24px));
+  position: absolute;
+  right: max(24px, calc((100vw - 1200px) / 2 + 24px));
+  top: 0;
+}
+
+.planner__layout {
   align-items: start;
   display: grid;
   gap: 42px;
   grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.22fr);
 }
 
-.prototype__copy {
+.planner__copy {
   position: sticky;
   top: 24px;
 }
 
 .console {
-  background: var(--panel-strong);
+  background:
+    linear-gradient(180deg, rgba(105, 225, 255, 0.06), rgba(245, 242, 234, 0.025)),
+    var(--panel-strong);
   border: 1px solid rgba(245, 242, 234, 0.15);
   border-radius: 8px;
-  box-shadow: var(--shadow);
+  box-shadow:
+    0 0 0 1px rgba(105, 225, 255, 0.07),
+    0 0 80px rgba(105, 225, 255, 0.08),
+    var(--shadow);
   display: grid;
   gap: 26px;
   overflow: hidden;
@@ -648,7 +709,8 @@ input[type="range"] {
 
 .handoff {
   align-items: center;
-  background: var(--paper);
+  background:
+    linear-gradient(180deg, #f5f2ea, #e9e2d5);
   color: var(--ink);
   display: grid;
   gap: 56px;
@@ -658,6 +720,8 @@ input[type="range"] {
 .handoff__visual {
   aspect-ratio: 1.28;
   background:
+    radial-gradient(circle at 65% 42%, rgba(105, 225, 255, 0.35), transparent 24%),
+    radial-gradient(circle at 38% 58%, rgba(255, 108, 95, 0.28), transparent 26%),
     linear-gradient(rgba(5, 6, 9, 0.08) 1px, transparent 1px),
     linear-gradient(90deg, rgba(5, 6, 9, 0.08) 1px, transparent 1px),
     #e9e2d5;
@@ -709,6 +773,35 @@ input[type="range"] {
   background: var(--ink);
   color: var(--paper);
   margin-top: 12px;
+}
+
+.run-command {
+  align-items: center;
+  background: rgba(5, 6, 9, 0.08);
+  border: 1px solid rgba(5, 6, 9, 0.14);
+  border-radius: 8px;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  margin-top: 24px;
+  padding: 12px;
+}
+
+.run-command code {
+  background: rgba(5, 6, 9, 0.82);
+  border-radius: 6px;
+  color: var(--paper);
+  display: block;
+  font-size: 0.9rem;
+  overflow-x: auto;
+  padding: 13px 14px;
+  white-space: nowrap;
+}
+
+.copy-status {
+  color: rgba(5, 6, 9, 0.62);
+  font-size: 0.86rem;
+  min-height: 1.2em;
 }
 
 .footer {
@@ -771,7 +864,7 @@ input[type="range"] {
 
   .intro-band,
   .case-grid,
-  .prototype__layout,
+  .planner__layout,
   .handoff {
     grid-template-columns: 1fr;
   }
@@ -781,12 +874,12 @@ input[type="range"] {
   }
 
   .case-copy h2,
-  .prototype__copy h2,
+  .planner__copy h2,
   .handoff__copy h2 {
     font-size: 2.6rem;
   }
 
-  .prototype__copy {
+  .planner__copy {
     position: static;
   }
 }
@@ -842,10 +935,6 @@ input[type="range"] {
     width: calc(100% - 32px);
   }
 
-  .sky-dial {
-    display: none;
-  }
-
   .mission-panel__metrics dd {
     font-size: 1rem;
   }
@@ -859,7 +948,7 @@ input[type="range"] {
   }
 
   .case-copy h2,
-  .prototype__copy h2,
+  .planner__copy h2,
   .handoff__copy h2 {
     font-size: 2.1rem;
   }
@@ -867,6 +956,27 @@ input[type="range"] {
   .console {
     gap: 22px;
     padding: 18px;
+  }
+
+  .mission-panel {
+    align-items: center;
+    grid-template-columns: 82px minmax(0, 1fr);
+  }
+
+  .mission-panel__top {
+    grid-column: 1 / -1;
+  }
+
+  .earth-card {
+    max-width: 82px;
+  }
+
+  .earth-card__meta {
+    display: none;
+  }
+
+  .mission-panel__metrics {
+    grid-column: 2;
   }
 
   .console__header,
@@ -877,6 +987,10 @@ input[type="range"] {
 
   .console__controls,
   .system-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .run-command {
     grid-template-columns: 1fr;
   }
 

@@ -10,7 +10,7 @@ Open it directly in a browser:
 open webpage/index.html
 ```
 
-The "Open planner" CTA assumes the Streamlit app is running locally:
+The run command used by the page assumes the Streamlit app is launched locally:
 
 ```bash
 streamlit run application/app.py
