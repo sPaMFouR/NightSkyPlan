@@ -2,10 +2,23 @@ const canvas = document.querySelector("#starfield");
 const context = canvas.getContext("2d");
 const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+const observatories = {
+  HCT: { name: "Hanle, India", lat: 32.78, lon: 78.96, horizon: 25, zenith: 85 },
+  DOT: { name: "Devasthal, India", lat: 29.36, lon: 79.68, horizon: 15, zenith: 87.5 },
+  KT: { name: "Higashi-Hiroshima, Japan", lat: 34.38, lon: 132.78, horizon: 10, zenith: 90 },
+};
+
+const targets = [
+  { name: "SN2022jli", ra: 8.688, dec: -8.39, exposure: 45, priority: 3 },
+  { name: "SN2020tlf", ra: 220.042, dec: 42.778, exposure: 30, priority: 2 },
+  { name: "SN2018zd", ra: 94.513, dec: 78.367, exposure: 20, priority: 1 },
+];
+
 let width = 0;
 let height = 0;
 let stars = [];
 let pointer = { x: 0, y: 0 };
+let currentPlan = null;
 
 function resizeCanvas() {
   const ratio = Math.min(window.devicePixelRatio || 1, 2);
@@ -21,9 +34,9 @@ function resizeCanvas() {
   stars = Array.from({ length: starCount }, () => ({
     x: Math.random() * width,
     y: Math.random() * height,
-    radius: Math.random() * 1.8 + 0.25,
-    drift: Math.random() * 0.18 + 0.04,
-    alpha: Math.random() * 0.45 + 0.32,
+    radius: Math.random() * 1.6 + 0.2,
+    drift: Math.random() * 0.14 + 0.03,
+    alpha: Math.random() * 0.4 + 0.28,
   }));
 }
 
@@ -35,7 +48,7 @@ function drawStars() {
 
   for (const star of stars) {
     star.x += star.drift;
-    star.y += pointer.y * 0.00016;
+    star.y += pointer.y * 0.00012;
     if (star.x > width + 4) star.x = -4;
     if (star.y > height + 4) star.y = -4;
     if (star.y < -4) star.y = height + 4;
@@ -46,15 +59,15 @@ function drawStars() {
     context.fill();
   }
 
-  context.globalAlpha = 0.16;
+  context.globalAlpha = 0.12;
   context.strokeStyle = "#69e1ff";
   context.lineWidth = 1;
-  for (let index = 0; index < stars.length - 1; index += 7) {
+  for (let index = 0; index < stars.length - 1; index += 8) {
     const a = stars[index];
     const b = stars[index + 1];
     if (!b) continue;
     const distance = Math.hypot(a.x - b.x, a.y - b.y);
-    if (distance < 180) {
+    if (distance < 170) {
       context.beginPath();
       context.moveTo(a.x, a.y);
       context.lineTo(b.x, b.y);
@@ -77,54 +90,10 @@ function setupReveals() {
         }
       }
     },
-    { threshold: 0.22 }
+    { threshold: 0.18 }
   );
 
   revealItems.forEach(item => observer.observe(item));
-}
-
-function setupPlannerControls() {
-  const airmass = document.querySelector("#airmass");
-  const moon = document.querySelector("#moon");
-  const ha = document.querySelector("#ha");
-  const airmassValue = document.querySelector("#airmass-value");
-  const moonValue = document.querySelector("#moon-value");
-  const haValue = document.querySelector("#ha-value");
-  const score = document.querySelector("#score");
-  const scheduled = document.querySelector("#scheduled");
-  const risk = document.querySelector("#risk");
-  const quality = document.querySelector("#quality-pill");
-  const bars = document.querySelectorAll(".chart__bar");
-
-  function update() {
-    const airmassNum = Number(airmass.value);
-    const moonNum = Number(moon.value);
-    const haNum = Number(ha.value);
-
-    airmassValue.value = airmassNum.toFixed(1);
-    moonValue.value = `${moonNum} deg`;
-    haValue.value = `${haNum.toFixed(1)} h`;
-
-    const constraintPressure =
-      (3.8 - airmassNum) * 8 + moonNum * 0.18 + Math.max(0, 5 - haNum) * 7;
-    const computedScore = Math.max(52, Math.min(98, Math.round(99 - constraintPressure)));
-    const scheduledCount = Math.max(6, Math.min(14, Math.round(computedScore / 8.1)));
-
-    score.textContent = computedScore;
-    scheduled.textContent = scheduledCount;
-    risk.textContent = moonNum > 74 ? "Low" : moonNum > 34 ? "Med" : "High";
-    quality.textContent = computedScore > 82 ? "Stable" : computedScore > 68 ? "Tight" : "Review";
-
-    bars.forEach((bar, index) => {
-      const widthValue = Math.max(23, Math.min(82, computedScore - index * 11 + haNum * 2));
-      const startValue = Math.max(4, Math.min(36, 39 - widthValue / 3 + index * 8));
-      bar.style.setProperty("--bar-width", `${widthValue}%`);
-      bar.style.setProperty("--bar-start", `${startValue}%`);
-    });
-  }
-
-  [airmass, moon, ha].forEach(control => control.addEventListener("input", update));
-  update();
 }
 
 function setupHeroParallax() {
@@ -137,157 +106,441 @@ function setupHeroParallax() {
     };
 
     if (prefersReducedMotion || width < 900) return;
-    const moveX = pointer.x * -0.006;
-    const moveY = pointer.y * -0.006;
-    heroImage.style.transform = `scale(1.04) translate(${moveX}px, ${moveY}px)`;
-    panel.style.transform = `translate(${pointer.x * 0.005}px, ${pointer.y * 0.005}px)`;
+    heroImage.style.transform = `scale(1.035) translate(${pointer.x * -0.005}px, ${pointer.y * -0.005}px)`;
+    panel.style.transform = `translate(${pointer.x * 0.004}px, ${pointer.y * 0.004}px)`;
   });
 }
 
-function setupEarthGlobe() {
-  const globe = document.querySelector("#earth-globe");
-  if (!globe) return;
+function setupPlanner() {
+  renderTargetList();
+  updateControlLabels();
+  runPlan();
 
-  const globeContext = globe.getContext("2d");
-  let currentSize = 0;
-  let currentRatio = 0;
-  const lights = Array.from({ length: 120 }, (_, index) => ({
-    lon: (index * 137.508) % 360 - 180,
-    lat: Math.sin(index * 1.91) * 58,
-    pulse: Math.random() * Math.PI * 2,
-    size: Math.random() * 1.4 + 0.5,
-  }));
+  document.querySelector("#planner-form").addEventListener("submit", event => {
+    event.preventDefault();
+    runPlan();
+  });
 
-  function configureCanvas() {
-    const parentWidth = globe.clientWidth || 260;
-    const ratio = Math.min(window.devicePixelRatio || 1, 2);
-    if (parentWidth !== currentSize || ratio !== currentRatio) {
-      currentSize = parentWidth;
-      currentRatio = ratio;
-      globe.width = Math.floor(parentWidth * ratio);
-      globe.height = Math.floor(parentWidth * ratio);
-      globeContext.setTransform(ratio, 0, 0, ratio, 0, 0);
+  ["observatory-select", "plan-date", "airmass", "moon", "ha"].forEach(id => {
+    document.querySelector(`#${id}`).addEventListener("input", () => {
+      updateControlLabels();
+      runPlan();
+    });
+  });
+}
+
+function updateControlLabels() {
+  document.querySelector("#airmass-value").value = Number(document.querySelector("#airmass").value).toFixed(1);
+  document.querySelector("#moon-value").value = `${document.querySelector("#moon").value} deg`;
+  document.querySelector("#ha-value").value = `${Number(document.querySelector("#ha").value).toFixed(1)} h`;
+}
+
+function renderTargetList() {
+  const targetList = document.querySelector("#target-list");
+  targetList.innerHTML = targets
+    .map(
+      target => `
+        <article class="target-item">
+          <div>
+            <strong>${target.name}</strong>
+            <span>RA ${target.ra.toFixed(2)} deg / Dec ${target.dec.toFixed(2)} deg</span>
+          </div>
+          <dl>
+            <div><dt>Exp</dt><dd>${target.exposure}m</dd></div>
+            <div><dt>P</dt><dd>${target.priority}</dd></div>
+          </dl>
+        </article>
+      `
+    )
+    .join("");
+  document.querySelector("#target-count").textContent = `${targets.length} targets`;
+}
+
+function runPlan() {
+  const obs = observatories[document.querySelector("#observatory-select").value];
+  const dateValue = document.querySelector("#plan-date").value;
+  const maxAirmass = Number(document.querySelector("#airmass").value);
+  const minMoonSep = Number(document.querySelector("#moon").value);
+  const haLimit = Number(document.querySelector("#ha").value);
+  const moon = approximateMoon(dateValue);
+  const timeSlots = Array.from({ length: 25 }, (_, index) => 18 + index * 0.5);
+
+  const tracks = targets.map(target => {
+    const samples = timeSlots.map(hour => sampleTarget(target, obs, dateValue, hour, moon));
+    const valid = samples.map(
+      sample =>
+        sample.alt >= obs.horizon &&
+        sample.alt <= obs.zenith &&
+        sample.airmass <= maxAirmass &&
+        Math.abs(sample.ha) <= haLimit &&
+        sample.moonSep >= minMoonSep
+    );
+    const windows = contiguousWindows(samples, valid);
+    return { target, samples, valid, windows };
+  });
+
+  const schedule = buildSchedule(tracks);
+  const meanAirmass =
+    schedule.length > 0
+      ? schedule.reduce((sum, row) => sum + row.airmass, 0) / schedule.length
+      : Math.min(maxAirmass, 2.8);
+  const pressure = (3.8 - maxAirmass) * 7 + minMoonSep * 0.16 + Math.max(0, 5 - haLimit) * 7;
+  const score = Math.max(48, Math.min(98, Math.round(100 - pressure + schedule.length * 2)));
+  const risk = minMoonSep > 74 ? "Low" : minMoonSep > 34 ? "Med" : "High";
+
+  currentPlan = { obs, dateValue, tracks, schedule, score, risk, meanAirmass };
+  renderPlan(currentPlan);
+  updateEarthSites(obs);
+}
+
+function sampleTarget(target, obs, dateValue, hourLocal, moon) {
+  const utcHour = (hourLocal - timezoneOffsetHours(obs.lon) + 24) % 24;
+  const lst = localSiderealDegrees(dateValue, utcHour, obs.lon);
+  let haDeg = normalizeDegrees(lst - target.ra);
+  if (haDeg > 180) haDeg -= 360;
+  const haRad = degToRad(haDeg);
+  const latRad = degToRad(obs.lat);
+  const decRad = degToRad(target.dec);
+  const sinAlt = Math.sin(decRad) * Math.sin(latRad) + Math.cos(decRad) * Math.cos(latRad) * Math.cos(haRad);
+  const alt = radToDeg(Math.asin(sinAlt));
+  const airmass = alt > 0 ? 1 / Math.max(0.18, Math.cos(degToRad(90 - alt))) : 9.9;
+  const moonSep = angularSeparation(target.ra, target.dec, moon.ra, moon.dec);
+  return { hour: hourLocal, alt, airmass, ha: haDeg / 15, moonSep };
+}
+
+function buildSchedule(tracks) {
+  return tracks
+    .map(track => {
+      const best = track.samples.reduce(
+        (winner, sample, index) => {
+          if (!track.valid[index]) return winner;
+          const score =
+            track.target.priority * 120 +
+            sample.alt -
+            sample.airmass * 18 +
+            sample.moonSep * 0.2 -
+            Math.abs(sample.ha) * 4;
+          if (!winner || score > winner.score) return { ...sample, score };
+          return winner;
+        },
+        null
+      );
+      if (!best) return null;
+      return {
+        target: track.target.name,
+        start: formatHour(best.hour),
+        end: formatHour(best.hour + track.target.exposure / 60),
+        airmass: best.airmass,
+        moonSep: best.moonSep,
+        priority: track.target.priority,
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => b.priority - a.priority || Number(a.start.slice(0, 2)) - Number(b.start.slice(0, 2)));
+}
+
+function renderPlan(plan) {
+  document.querySelector("#quality-pill").textContent = plan.score > 84 ? "Stable" : plan.score > 68 ? "Tight" : "Review";
+  document.querySelector("#score").textContent = plan.score;
+  document.querySelector("#scheduled").textContent = plan.schedule.length;
+  document.querySelector("#risk").textContent = plan.risk;
+  document.querySelector("#schedule-summary").textContent =
+    plan.schedule.length > 0 ? `${plan.schedule.length} scheduled / ${targets.length} targets` : "No valid windows";
+  document.querySelector("#hero-observatory").textContent = plan.obs.name;
+  document.querySelector("#hero-date").textContent = plan.dateValue;
+  document.querySelector("#hero-coordinates").textContent = formatCoordinates(plan.obs);
+  document.querySelector("#hero-scheduled").textContent = plan.schedule.length;
+  document.querySelector("#hero-airmass").textContent = plan.meanAirmass.toFixed(2);
+  document.querySelector("#hero-dark-window").textContent = darkWindowLabel(plan.obs.lat);
+  document.querySelector("#site-name").textContent = plan.obs.name;
+  document.querySelector("#site-coordinates").textContent = formatCoordinates(plan.obs);
+  document.querySelector("#site-horizon").textContent = `${plan.obs.horizon} deg`;
+
+  document.querySelector("#visibility-rows").innerHTML = plan.tracks
+    .map(track => {
+      const bestWindow = track.windows[0];
+      const widthPercent = bestWindow ? Math.max(9, ((bestWindow.end - bestWindow.start) / 12) * 100) : 6;
+      const startPercent = bestWindow ? ((bestWindow.start - 18) / 12) * 100 : 2;
+      const state = bestWindow ? "" : " chart__bar--blocked";
+      return `
+        <div class="chart__row">
+          <span>${track.target.name}</span>
+          <i class="chart__bar${state}" style="--bar-start:${startPercent}%; --bar-width:${widthPercent}%"></i>
+        </div>
+      `;
+    })
+    .join("");
+
+  document.querySelector("#schedule-list").innerHTML =
+    plan.schedule.length > 0
+      ? plan.schedule
+          .map(
+            row => `
+              <article class="schedule-item">
+                <strong>${row.target}</strong>
+                <span>${row.start} - ${row.end}</span>
+                <small>X ${row.airmass.toFixed(2)} / Moon ${Math.round(row.moonSep)} deg</small>
+              </article>
+            `
+          )
+          .join("")
+      : `<article class="schedule-item schedule-item--empty">No target clears the current constraints.</article>`;
+}
+
+function contiguousWindows(samples, valid) {
+  const windows = [];
+  let start = null;
+  valid.forEach((isValid, index) => {
+    if (isValid && start === null) start = samples[index].hour;
+    if (start !== null && (!isValid || index === valid.length - 1)) {
+      const endIndex = isValid && index === valid.length - 1 ? index : index - 1;
+      windows.push({ start, end: samples[endIndex].hour + 0.5 });
+      start = null;
     }
-    return parentWidth;
-  }
+  });
+  return windows.sort((a, b) => b.end - b.start - (a.end - a.start));
+}
+
+function setupEarthGlobes() {
+  const canvases = [document.querySelector("#earth-globe"), document.querySelector("#earth-globe-large")].filter(Boolean);
+  const globeStates = canvases.map(canvasEl => createGlobeState(canvasEl));
 
   function draw(time = 0) {
-    const size = configureCanvas();
-    const center = size / 2;
-    const radius = size * 0.42;
-    const rotation = prefersReducedMotion ? 0 : time * 0.000035;
-
-    globeContext.clearRect(0, 0, size, size);
-
-    const halo = globeContext.createRadialGradient(center, center, radius * 0.55, center, center, radius * 1.35);
-    halo.addColorStop(0, "rgba(105, 225, 255, 0.18)");
-    halo.addColorStop(0.58, "rgba(105, 225, 255, 0.08)");
-    halo.addColorStop(1, "rgba(105, 225, 255, 0)");
-    globeContext.fillStyle = halo;
-    globeContext.beginPath();
-    globeContext.arc(center, center, radius * 1.36, 0, Math.PI * 2);
-    globeContext.fill();
-
-    const body = globeContext.createRadialGradient(center - radius * 0.35, center - radius * 0.35, radius * 0.1, center, center, radius);
-    body.addColorStop(0, "#29313a");
-    body.addColorStop(0.42, "#121a24");
-    body.addColorStop(1, "#04070d");
-    globeContext.fillStyle = body;
-    globeContext.beginPath();
-    globeContext.arc(center, center, radius, 0, Math.PI * 2);
-    globeContext.fill();
-
-    globeContext.save();
-    globeContext.beginPath();
-    globeContext.arc(center, center, radius, 0, Math.PI * 2);
-    globeContext.clip();
-
-    globeContext.strokeStyle = "rgba(245, 242, 234, 0.11)";
-    globeContext.lineWidth = 1;
-    for (let i = -3; i <= 3; i += 1) {
-      globeContext.beginPath();
-      globeContext.ellipse(center, center, radius * (0.2 + Math.abs(i) * 0.13), radius, rotation + i * 0.04, 0, Math.PI * 2);
-      globeContext.stroke();
-    }
-    for (let i = -2; i <= 2; i += 1) {
-      globeContext.beginPath();
-      globeContext.ellipse(center, center + i * radius * 0.22, radius, radius * 0.22, 0, 0, Math.PI * 2);
-      globeContext.stroke();
-    }
-
-    lights.forEach(light => {
-      const lon = ((light.lon * Math.PI) / 180) + rotation;
-      const lat = (light.lat * Math.PI) / 180;
-      const depth = Math.cos(lon);
-      if (depth < -0.08) return;
-      const x = center + Math.sin(lon) * Math.cos(lat) * radius;
-      const y = center - Math.sin(lat) * radius;
-      const alpha = Math.max(0, depth) * (0.42 + Math.sin(time * 0.002 + light.pulse) * 0.18);
-      globeContext.fillStyle = `rgba(242, 177, 95, ${alpha})`;
-      globeContext.beginPath();
-      globeContext.arc(x, y, light.size, 0, Math.PI * 2);
-      globeContext.fill();
-    });
-
-    const hanle = projectGlobe(78.96, 32.78, rotation, center, radius);
-    if (hanle.visible) {
-      globeContext.strokeStyle = "rgba(153, 244, 199, 0.55)";
-      globeContext.lineWidth = 1.5;
-      globeContext.beginPath();
-      globeContext.arc(hanle.x, hanle.y, 20 + Math.sin(time * 0.004) * 4, 0, Math.PI * 2);
-      globeContext.stroke();
-      globeContext.fillStyle = "#99f4c7";
-      globeContext.beginPath();
-      globeContext.arc(hanle.x, hanle.y, 4.8, 0, Math.PI * 2);
-      globeContext.fill();
-    }
-
-    globeContext.restore();
-
-    if (!prefersReducedMotion) {
-      requestAnimationFrame(draw);
-    }
+    const obs = currentPlan?.obs || observatories.HCT;
+    globeStates.forEach(state => drawGlobe(state, obs, time));
+    if (!prefersReducedMotion) requestAnimationFrame(draw);
   }
 
   draw();
-  if (prefersReducedMotion) {
-    window.addEventListener("resize", draw);
+  if (prefersReducedMotion) window.addEventListener("resize", () => draw(0));
+}
+
+function createGlobeState(canvasEl) {
+  const lights = Array.from({ length: 360 }, (_, index) => ({
+    lon: (index * 137.508) % 360 - 180,
+    lat: Math.sin(index * 0.83) * 64,
+    pulse: Math.random() * Math.PI * 2,
+    size: Math.random() * 1.8 + 0.35,
+  }));
+  return { canvas: canvasEl, context: canvasEl.getContext("2d"), lights, size: 0, ratio: 0 };
+}
+
+function drawGlobe(state, obs, time) {
+  const size = state.canvas.clientWidth || 260;
+  const ratio = Math.min(window.devicePixelRatio || 1, 2);
+  if (size !== state.size || ratio !== state.ratio) {
+    state.size = size;
+    state.ratio = ratio;
+    state.canvas.width = Math.floor(size * ratio);
+    state.canvas.height = Math.floor(size * ratio);
+    state.context.setTransform(ratio, 0, 0, ratio, 0, 0);
+  }
+
+  const ctx = state.context;
+  const center = size / 2;
+  const radius = size * 0.39;
+  const rotation = prefersReducedMotion ? -1.55 : -1.55 + time * 0.00005;
+
+  ctx.clearRect(0, 0, size, size);
+
+  const outerHalo = ctx.createRadialGradient(center, center, radius * 0.7, center, center, radius * 1.75);
+  outerHalo.addColorStop(0, "rgba(105, 225, 255, 0.2)");
+  outerHalo.addColorStop(0.62, "rgba(105, 225, 255, 0.08)");
+  outerHalo.addColorStop(1, "rgba(105, 225, 255, 0)");
+  ctx.fillStyle = outerHalo;
+  ctx.beginPath();
+  ctx.arc(center, center, radius * 1.75, 0, Math.PI * 2);
+  ctx.fill();
+
+  const planet = ctx.createRadialGradient(center - radius * 0.42, center - radius * 0.36, radius * 0.08, center, center, radius);
+  planet.addColorStop(0, "#334453");
+  planet.addColorStop(0.28, "#162332");
+  planet.addColorStop(0.72, "#08111d");
+  planet.addColorStop(1, "#01040a");
+  ctx.fillStyle = planet;
+  ctx.beginPath();
+  ctx.arc(center, center, radius, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(center, center, radius, 0, Math.PI * 2);
+  ctx.clip();
+
+  drawNightLights(ctx, state.lights, center, radius, rotation, time);
+  drawContinentHints(ctx, center, radius, rotation);
+  drawGrid(ctx, center, radius, rotation);
+
+  const site = projectGlobe(obs.lon, obs.lat, rotation, center, radius);
+  if (site.visible) {
+    const pulse = 18 + Math.sin(time * 0.004) * 5;
+    ctx.strokeStyle = "rgba(153, 244, 199, 0.65)";
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.arc(site.x, site.y, pulse, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.fillStyle = "#99f4c7";
+    ctx.shadowColor = "#99f4c7";
+    ctx.shadowBlur = 18;
+    ctx.beginPath();
+    ctx.arc(site.x, site.y, 4.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  }
+  ctx.restore();
+
+  ctx.strokeStyle = "rgba(105, 225, 255, 0.42)";
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.arc(center, center, radius + 1, 0, Math.PI * 2);
+  ctx.stroke();
+}
+
+function drawNightLights(ctx, lights, center, radius, rotation, time) {
+  lights.forEach(light => {
+    const projected = projectGlobe(light.lon, light.lat, rotation, center, radius);
+    if (!projected.visible) return;
+    const alpha = projected.depth * (0.38 + Math.sin(time * 0.002 + light.pulse) * 0.16);
+    ctx.fillStyle = `rgba(255, 198, 103, ${alpha})`;
+    ctx.shadowColor = "rgba(255, 198, 103, 0.65)";
+    ctx.shadowBlur = 5;
+    ctx.beginPath();
+    ctx.arc(projected.x, projected.y, light.size, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  });
+}
+
+function drawContinentHints(ctx, center, radius, rotation) {
+  ctx.strokeStyle = "rgba(105, 225, 255, 0.13)";
+  ctx.lineWidth = 1.1;
+  const bands = [
+    [-70, 20, 80, -10, 130, 22],
+    [-20, 45, 32, 18, 90, 8],
+    [70, 28, 108, -6, 146, 10],
+    [-130, -18, -82, -36, -48, -12],
+  ];
+  bands.forEach(points => {
+    ctx.beginPath();
+    for (let i = 0; i < points.length; i += 2) {
+      const p = projectGlobe(points[i], points[i + 1], rotation, center, radius);
+      if (!p.visible) continue;
+      if (i === 0) ctx.moveTo(p.x, p.y);
+      else ctx.lineTo(p.x, p.y);
+    }
+    ctx.stroke();
+  });
+}
+
+function drawGrid(ctx, center, radius, rotation) {
+  ctx.strokeStyle = "rgba(245, 242, 234, 0.08)";
+  ctx.lineWidth = 1;
+  for (let lat = -45; lat <= 45; lat += 30) {
+    ctx.beginPath();
+    for (let lon = -180; lon <= 180; lon += 8) {
+      const p = projectGlobe(lon, lat, rotation, center, radius);
+      if (!p.visible) continue;
+      if (lon === -180) ctx.moveTo(p.x, p.y);
+      else ctx.lineTo(p.x, p.y);
+    }
+    ctx.stroke();
+  }
+  for (let lon = -120; lon <= 120; lon += 60) {
+    ctx.beginPath();
+    for (let lat = -80; lat <= 80; lat += 5) {
+      const p = projectGlobe(lon, lat, rotation, center, radius);
+      if (!p.visible) continue;
+      if (lat === -80) ctx.moveTo(p.x, p.y);
+      else ctx.lineTo(p.x, p.y);
+    }
+    ctx.stroke();
   }
 }
 
+function updateEarthSites(obs) {
+  document.querySelector("#hero-coordinates").textContent = formatCoordinates(obs);
+}
+
 function projectGlobe(lonDeg, latDeg, rotation, center, radius) {
-  const lon = (lonDeg * Math.PI) / 180 + rotation;
-  const lat = (latDeg * Math.PI) / 180;
-  const depth = Math.cos(lon);
+  const lon = degToRad(lonDeg) + rotation;
+  const lat = degToRad(latDeg);
+  const depth = Math.cos(lon) * Math.cos(lat);
   return {
-    visible: depth > -0.08,
+    visible: depth > -0.12,
+    depth: Math.max(0, depth),
     x: center + Math.sin(lon) * Math.cos(lat) * radius,
     y: center - Math.sin(lat) * radius,
   };
 }
 
-function setupCopyCommand() {
-  const button = document.querySelector("#copy-command");
-  const status = document.querySelector("#copy-status");
-  const command = "streamlit run application/app.py";
-  if (!button || !status) return;
+function approximateMoon(dateValue) {
+  const days = julianDays(dateValue);
+  return {
+    ra: normalizeDegrees(218.32 + 13.176396 * days),
+    dec: 5.1 * Math.sin(degToRad(134.9 + 13.064993 * days)),
+  };
+}
 
-  button.addEventListener("click", async () => {
-    try {
-      await navigator.clipboard.writeText(command);
-      status.textContent = "Command copied.";
-    } catch {
-      status.textContent = command;
-    }
-  });
+function localSiderealDegrees(dateValue, utcHour, lon) {
+  const days = julianDays(dateValue);
+  return normalizeDegrees(100.46 + 0.985647 * days + lon + 15 * utcHour);
+}
+
+function julianDays(dateValue) {
+  const date = new Date(`${dateValue}T00:00:00Z`);
+  return date.getTime() / 86400000 - Date.UTC(2000, 0, 1, 12) / 86400000;
+}
+
+function angularSeparation(ra1, dec1, ra2, dec2) {
+  const r1 = degToRad(ra1);
+  const d1 = degToRad(dec1);
+  const r2 = degToRad(ra2);
+  const d2 = degToRad(dec2);
+  const cosSep = Math.sin(d1) * Math.sin(d2) + Math.cos(d1) * Math.cos(d2) * Math.cos(r1 - r2);
+  return radToDeg(Math.acos(Math.max(-1, Math.min(1, cosSep))));
+}
+
+function timezoneOffsetHours(lon) {
+  return Math.round(lon / 15);
+}
+
+function normalizeDegrees(value) {
+  return ((value % 360) + 360) % 360;
+}
+
+function degToRad(value) {
+  return (value * Math.PI) / 180;
+}
+
+function radToDeg(value) {
+  return (value * 180) / Math.PI;
+}
+
+function formatHour(hour) {
+  const wrapped = ((hour % 24) + 24) % 24;
+  const h = Math.floor(wrapped);
+  const m = Math.round((wrapped - h) * 60);
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}
+
+function formatCoordinates(obs) {
+  return `${Math.abs(obs.lat).toFixed(2)} ${obs.lat >= 0 ? "N" : "S"}, ${Math.abs(obs.lon).toFixed(2)} ${
+    obs.lon >= 0 ? "E" : "W"
+  }`;
+}
+
+function darkWindowLabel(lat) {
+  const hours = Math.max(6.4, Math.min(10.2, 8.5 + Math.abs(lat - 30) * 0.03));
+  const h = Math.floor(hours);
+  const m = Math.round((hours - h) * 60);
+  return `${h}h ${m}m`;
 }
 
 resizeCanvas();
 setupReveals();
-setupPlannerControls();
 setupHeroParallax();
-setupEarthGlobe();
-setupCopyCommand();
+setupPlanner();
+setupEarthGlobes();
 
 if (!prefersReducedMotion) {
   drawStars();

@@ -1,17 +1,12 @@
 # Webpage
 
-This static landing page is a portfolio-style companion to the Streamlit planner.
-It uses a generated project-local hero image and native browser animation, so it
-does not require a JavaScript build step or CDN dependencies.
+This static webpage is an independent browser-native planning interface. It uses
+a project-local hero image, native canvas animation, and JavaScript schedule
+calculation, so it does not require a backend, JavaScript build step, or CDN
+dependencies.
 
 Open it directly in a browser:
 
 ```bash
 open webpage/index.html
-```
-
-The run command used by the page assumes the Streamlit app is launched locally:
-
-```bash
-streamlit run application/app.py
 ```

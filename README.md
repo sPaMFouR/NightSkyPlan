@@ -56,10 +56,10 @@ tables.
 
 ## Webpage
 
-The modern static landing page lives in `webpage/index.html`. It is a
-self-contained portfolio page with a project-local hero image, responsive CSS,
-native canvas motion, an illuminated observatory globe, and an interactive
-planner console.
+The modern static webpage lives in `webpage/index.html`. It is an independent
+browser-native planner with a project-local hero image, responsive CSS, native
+canvas motion, an illuminated observatory globe, and JavaScript schedule
+calculation.
 
 Open it directly in a browser:
 
@@ -67,8 +67,7 @@ Open it directly in a browser:
 open webpage/index.html
 ```
 
-The webpage CTA assumes the Streamlit planner is running at
-`http://localhost:8501`.
+The webpage runs directly in the browser and does not need the Streamlit app.
 
 ## Legacy Scripts
 

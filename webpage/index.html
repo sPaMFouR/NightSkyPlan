@@ -5,14 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta
       name="description"
-      content="NightSkyPlan portfolio landing page for a modern night sky planning interface."
+      content="NightSkyPlan is a browser-native night sky planning interface for target visibility, airmass, Moon separation, and observing schedules."
     >
-    <title>NightSkyPlan | Observing Interface Portfolio</title>
+    <title>NightSkyPlan | Browser Night Planner</title>
     <link rel="preload" href="assets/observatory-hero.png" as="image">
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
     <canvas id="starfield" aria-hidden="true"></canvas>
+
     <header class="hero" id="top">
       <img
         class="hero__image"
@@ -27,57 +28,54 @@
           NightSkyPlan
         </a>
         <div class="nav__links">
-          <a href="#case">Case</a>
           <a href="#planner">Planner</a>
-          <a href="#systems">System</a>
-          <a href="#runbook">Run</a>
+          <a href="#observatory">Observatory</a>
+          <a href="#system">System</a>
         </div>
-        <a class="nav__action" href="#runbook">Run application</a>
+        <a class="nav__action" href="#planner">Open web planner</a>
       </nav>
 
       <section class="hero__content" aria-labelledby="hero-title">
-        <p class="eyebrow">UI/UX portfolio for precision astronomy</p>
-        <h1 id="hero-title">NightSkyPlan</h1>
+        <p class="eyebrow">Browser-native observing operations</p>
+        <h1 id="hero-title">Plan the night from a single command surface.</h1>
         <p class="hero__lede">
-          A visual redesign of an observing planner that turns target lists,
-          twilight windows, moon risk, and scheduling logic into a calm control
-          room for the night.
+          A Linear-inspired planning interface for target visibility, airmass,
+          Moon separation, hour angle, and schedule order. No backend dependency
+          is required for this web version.
         </p>
         <div class="hero__actions" aria-label="Page actions">
           <a class="button button--primary" href="#planner">
-            Plan the night
+            Start planning
             <span class="button__arrow" aria-hidden="true"></span>
           </a>
-          <a class="button button--secondary" href="#runbook">
-            Run application
-          </a>
+          <a class="button button--secondary" href="#observatory">View observatory</a>
         </div>
       </section>
 
-      <aside class="mission-panel" aria-label="Night plan preview">
+      <aside class="mission-panel" aria-label="Observatory preview">
         <div class="mission-panel__top">
-          <p>Hanle, India</p>
-          <span>2026-06-14</span>
+          <p id="hero-observatory">Hanle, India</p>
+          <span id="hero-date">2026-06-14</span>
         </div>
         <div class="earth-card" aria-label="Observatory location on illuminated Earth">
-          <canvas id="earth-globe" width="360" height="360"></canvas>
+          <canvas id="earth-globe" width="480" height="480"></canvas>
           <div class="earth-card__meta">
             <span>Observatory lock</span>
-            <strong>32.78 N, 78.96 E</strong>
+            <strong id="hero-coordinates">32.78 N, 78.96 E</strong>
           </div>
         </div>
         <dl class="mission-panel__metrics">
           <div>
             <dt>Dark window</dt>
-            <dd>8h 42m</dd>
+            <dd id="hero-dark-window">8h 42m</dd>
           </div>
           <div>
-            <dt>Targets</dt>
-            <dd>14</dd>
+            <dt>Scheduled</dt>
+            <dd id="hero-scheduled">3</dd>
           </div>
           <div>
             <dt>Mean X</dt>
-            <dd>1.28</dd>
+            <dd id="hero-airmass">1.31</dd>
           </div>
         </dl>
       </aside>
@@ -85,7 +83,7 @@
 
     <main>
       <section class="intro-band" aria-label="Planner summary">
-        <p>From desktop plotting scripts to a browser-native observing flow.</p>
+        <p>Web planning for observation windows, constraints, and target order.</p>
         <div class="intro-band__items" aria-label="Core planner dimensions">
           <span>Altitude</span>
           <span>Airmass</span>
@@ -95,95 +93,87 @@
         </div>
       </section>
 
-      <section class="case-section section-pad" id="case">
-        <div class="section-kicker">Case study</div>
-        <div class="case-grid">
-          <div class="case-copy reveal">
-            <h2>Make the whole night legible before the first exposure.</h2>
-            <p>
-              The original NightSkyPlan tools calculate altitude, airmass,
-              twilight, moon phase, moon separation, and long-range observing
-              windows. The Streamlit branch brings those calculations into a
-              browsable planner with uploadable targets and a baseline greedy
-              scheduler.
-            </p>
-          </div>
-          <div class="case-stat reveal">
-            <span>01</span>
-            <strong>Target triage</strong>
-            <p>Parse CSV targets, priorities, exposure lengths, RA, and Dec.</p>
-          </div>
-          <div class="case-stat reveal">
-            <span>02</span>
-            <strong>Constraint clarity</strong>
-            <p>Show why a target fails twilight, altitude, moon, or HA limits.</p>
-          </div>
-          <div class="case-stat reveal">
-            <span>03</span>
-            <strong>Schedule confidence</strong>
-            <p>Convert valid windows into an ordered night plan and diagnostics.</p>
-          </div>
-        </div>
-      </section>
-
       <section class="planner section-pad" id="planner">
         <div class="section-kicker">Planner workspace</div>
         <div class="planner__layout">
           <div class="planner__copy reveal">
-            <h2>A tactile planning console for changing sky conditions.</h2>
+            <h2>Change a constraint. Watch the night reorganize.</h2>
             <p>
-              Inspired by the dense observability surfaces of airmass.org, this
-              web experience keeps the controls sparse and the feedback
-              immediate: target quality, moon risk, and schedule load move as
-              observers tune constraints.
+              The web planner runs in the browser with a deterministic schedule
+              model. Tune the observatory, date, Moon separation, airmass, and
+              hour-angle limits, then run the plan to update target windows and
+              schedule order.
             </p>
           </div>
 
-          <div class="console reveal" aria-label="Interactive planning console">
+          <form class="console reveal" id="planner-form" aria-label="Interactive web planner">
             <div class="console__header">
               <div>
                 <p>Night run</p>
-                <h3>SN follow-up sequence</h3>
+                <h3 id="night-title">SN follow-up sequence</h3>
               </div>
-              <span id="quality-pill" class="quality-pill">Stable</span>
+              <span id="quality-pill" class="quality-pill">Ready</span>
             </div>
 
-            <div class="console__controls">
-              <label>
-                <span>Airmass ceiling</span>
-                <output id="airmass-value" for="airmass">2.2</output>
-                <input id="airmass" type="range" min="1.2" max="3.8" value="2.2" step="0.1">
-              </label>
-              <label>
-                <span>Moon separation</span>
-                <output id="moon-value" for="moon">42 deg</output>
-                <input id="moon" type="range" min="10" max="120" value="42" step="1">
-              </label>
-              <label>
-                <span>HA limit</span>
-                <output id="ha-value" for="ha">5.0 h</output>
-                <input id="ha" type="range" min="1" max="8" value="5" step="0.5">
-              </label>
+            <div class="planner-grid">
+              <section class="control-panel" aria-label="Planning controls">
+                <label>
+                  <span>Observatory</span>
+                  <select id="observatory-select">
+                    <option value="HCT">Hanle, India</option>
+                    <option value="DOT">Devasthal, India</option>
+                    <option value="KT">Higashi-Hiroshima, Japan</option>
+                  </select>
+                </label>
+                <label>
+                  <span>Observing date</span>
+                  <input id="plan-date" type="date" value="2026-06-14">
+                </label>
+                <label>
+                  <span>Airmass ceiling</span>
+                  <output id="airmass-value" for="airmass">2.2</output>
+                  <input id="airmass" type="range" min="1.2" max="3.8" value="2.2" step="0.1">
+                </label>
+                <label>
+                  <span>Moon separation</span>
+                  <output id="moon-value" for="moon">42 deg</output>
+                  <input id="moon" type="range" min="10" max="120" value="42" step="1">
+                </label>
+                <label>
+                  <span>HA limit</span>
+                  <output id="ha-value" for="ha">5.0 h</output>
+                  <input id="ha" type="range" min="1" max="8" value="5" step="0.5">
+                </label>
+                <button class="button button--primary" type="submit">
+                  Run plan
+                  <span class="button__arrow" aria-hidden="true"></span>
+                </button>
+              </section>
+
+              <section class="target-panel" aria-label="Target queue">
+                <div class="panel-heading">
+                  <p>Target queue</p>
+                  <span id="target-count">3 targets</span>
+                </div>
+                <div class="target-list" id="target-list"></div>
+              </section>
             </div>
 
-            <div class="chart" aria-label="Visibility chart preview">
+            <div class="chart" aria-label="Visibility chart">
               <div class="chart__axis">
                 <span>18:00</span>
                 <span>00:00</span>
                 <span>06:00</span>
               </div>
-              <div class="chart__row" data-target="SN2022jli">
-                <span>SN2022jli</span>
-                <i class="chart__bar chart__bar--one"></i>
+              <div id="visibility-rows" class="visibility-rows"></div>
+            </div>
+
+            <div class="schedule-board" aria-label="Generated schedule">
+              <div class="panel-heading">
+                <p>Schedule</p>
+                <span id="schedule-summary">Run plan to calculate</span>
               </div>
-              <div class="chart__row" data-target="SN2020tlf">
-                <span>SN2020tlf</span>
-                <i class="chart__bar chart__bar--two"></i>
-              </div>
-              <div class="chart__row" data-target="SN2018zd">
-                <span>SN2018zd</span>
-                <i class="chart__bar chart__bar--three"></i>
-              </div>
+              <div id="schedule-list" class="schedule-list"></div>
             </div>
 
             <div class="console__footer">
@@ -192,76 +182,83 @@
                 <p>Plan score</p>
               </div>
               <div>
-                <span id="scheduled">11</span>
+                <span id="scheduled">3</span>
                 <p>Scheduled</p>
               </div>
               <div>
-                <span id="risk">Low</span>
+                <span id="risk">Med</span>
                 <p>Moon risk</p>
               </div>
             </div>
+          </form>
+        </div>
+      </section>
+
+      <section class="observatory-section section-pad" id="observatory">
+        <div class="section-kicker">Observatory context</div>
+        <div class="observatory-grid">
+          <div class="observatory-copy reveal">
+            <h2>Night-side Earth, locked to the selected site.</h2>
+            <p>
+              The globe emphasizes the observatory as a live operating point:
+              city lights, a soft atmospheric edge, and a pulsing site marker
+              update with the planner selection.
+            </p>
+          </div>
+          <div class="observatory-card reveal">
+            <canvas id="earth-globe-large" width="720" height="720"></canvas>
+            <dl>
+              <div>
+                <dt>Site</dt>
+                <dd id="site-name">Hanle, India</dd>
+              </div>
+              <div>
+                <dt>Coordinates</dt>
+                <dd id="site-coordinates">32.78 N, 78.96 E</dd>
+              </div>
+              <div>
+                <dt>Horizon</dt>
+                <dd id="site-horizon">25 deg</dd>
+              </div>
+            </dl>
           </div>
         </div>
       </section>
 
-      <section class="system-section section-pad" id="systems">
+      <section class="system-section section-pad" id="system">
         <div class="section-kicker">Interface system</div>
         <div class="system-grid">
           <article class="system-card reveal">
             <span class="system-card__index">A</span>
-            <h3>Observability as rhythm</h3>
+            <h3>Operational density</h3>
             <p>
-              Daily and annual visibility become scan-friendly timelines with
-              twilight as context, not decoration.
+              Compact controls and schedule panels keep the page useful without
+              turning it into a marketing shell.
             </p>
           </article>
           <article class="system-card reveal">
             <span class="system-card__index">B</span>
-            <h3>Constraints with reasons</h3>
+            <h3>Immediate feedback</h3>
             <p>
-              Every failed target keeps a clear diagnostic trail so observers can
-              adjust limits without guessing.
+              Visibility bars, diagnostics, and score states update when the
+              observer changes constraints.
             </p>
           </article>
           <article class="system-card reveal">
             <span class="system-card__index">C</span>
-            <h3>Science-grade calm</h3>
+            <h3>Dark-adapted polish</h3>
             <p>
-              The design stays dark-adapted, high contrast, and restrained while
-              preserving enough drama for a portfolio-grade first impression.
+              Linear-style panels, restrained borders, and soft halos preserve a
+              focused product feel for night work.
             </p>
           </article>
-        </div>
-      </section>
-
-      <section class="handoff section-pad" aria-label="Designer handoff">
-        <div class="handoff__visual reveal" aria-hidden="true">
-          <span></span>
-          <span></span>
-          <span></span>
-        </div>
-        <div class="handoff__copy reveal">
-          <div class="section-kicker">Handoff</div>
-          <h2>Built to sit beside the real planner, not replace it.</h2>
-          <p>
-            The webpage introduces the observing workflow, while the Streamlit
-            application remains the calculation workspace for actual target
-            uploads, charts, schedules, diagnostics, and CSV exports.
-          </p>
-          <div class="run-command" id="runbook">
-            <code>streamlit run application/app.py</code>
-            <button class="button button--primary" id="copy-command" type="button">
-              Copy command
-            </button>
-          </div>
-          <p class="copy-status" id="copy-status" role="status" aria-live="polite"></p>
         </div>
       </section>
     </main>
 
     <footer class="footer">
       <a href="#top">NightSkyPlan</a>
-      <p>Web experience for observability, airmass, and scheduling UX.</p>
+      <p>Independent web planner for observability, airmass, and scheduling UX.</p>
     </footer>
 
     <script src="script.js" defer></script>
