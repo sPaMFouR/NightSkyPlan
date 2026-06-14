@@ -10,9 +10,13 @@ from nightskyplan.models import Observatory
 def add_twilight_shapes(fig: go.Figure, context: dict[str, object], y0: float, y1: float) -> None:
     dusk, dawn = context.get("dusk"), context.get("dawn")
     if dusk is not None and dawn is not None:
-        fig.add_vrect(x0=dusk.datetime, x1=dawn.datetime, fillcolor="gray", opacity=0.12, line_width=0)
-        fig.add_vline(x=dusk.datetime, line_dash="dash", annotation_text="twilight start")
-        fig.add_vline(x=dawn.datetime, line_dash="dash", annotation_text="twilight end")
+        dusk_dt = dusk.datetime
+        dawn_dt = dawn.datetime
+        fig.add_vrect(x0=dusk_dt, x1=dawn_dt, fillcolor="gray", opacity=0.12, line_width=0)
+        fig.add_vline(x=dusk_dt, line_dash="dash")
+        fig.add_vline(x=dawn_dt, line_dash="dash")
+        fig.add_annotation(x=dusk_dt, y=y1, text="twilight start", showarrow=False, yanchor="bottom")
+        fig.add_annotation(x=dawn_dt, y=y1, text="twilight end", showarrow=False, yanchor="bottom")
     fig.update_yaxes(range=[y0, y1])
 
 
