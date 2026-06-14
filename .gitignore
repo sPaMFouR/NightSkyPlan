@@ -16,6 +16,15 @@ build/
 dist/
 *.egg
 
+# Frontend dependencies and builds
+node_modules/
+webapp/frontend/dist/
+webapp/frontend/.vite/
+webapp/frontend/coverage/
+webapp/frontend/*.tsbuildinfo
+webapp/frontend/vite.config.js
+webapp/frontend/vite.config.d.ts
+
 # Virtual environments
 .venv/
 venv/

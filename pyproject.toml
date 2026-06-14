@@ -10,10 +10,14 @@ readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
     "astropy",
+    "fastapi",
+    "httpx",
     "numpy",
     "pandas",
     "plotly",
-    "streamlit",
+    "pydantic",
+    "requests",
+    "uvicorn[standard]",
 ]
 
 [tool.setuptools.packages.find]
